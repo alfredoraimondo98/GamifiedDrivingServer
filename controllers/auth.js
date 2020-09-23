@@ -1,5 +1,6 @@
 const db = require('../utils/database');
-
+const bcrypt = require('bcryptjs');
+ 
 /**
  * getUtenti: restituisce tutti gli utenti presenti nella tabella
  * @param {*} req 
@@ -18,85 +19,91 @@ exports.getUtenti = (req,res,next) => {
     })
 }
 
+
+
 /** /auth/register/
  * Insert utente (Registrazione)
  * @param {*} req 
  * @param {*} res 
  * @param {*} next 
  */
-
-
-
- 
-function selectUserByEmail(email) {
-    db.execute('SELECT * FROM utente WHERE email = ?', [email])
-   .then( ([rows,fields]) => {
-       console.log("IDDD ",rows[0].idutente);
-       return rows[0].idutente;
-   })
-   .catch( error => {
-       console.log(error);
-   })
-}
-
-function createPortafoglio(idUtente){
-    db.execute('INSERT INTO portafoglio (idutente) values (?)', [idUtente])
-    .then( res => {
-        console.log("Portafoglio creato");
-    })
-    .catch();
-}
-
-exports.insertUtente = async (req,res,next) => {
-    console.log("Insertutente");
-    var nome = req.body.nome;
+exports.insertUtente = async (req,res, next) => {
+     var nome = req.body.nome;
     var cognome = req.body.cognome;
     var email = req.body.email;
     var password = req.body.password;
     var citta = req.body.citta;
     var tipo_accesso = 'app';
-   // nome = 'aa2';
-   // console.log("BODY:", req.body);
 
-   var idUtente;
+     
+    var idUtente;
+    var idGarage;
+    var idPortafoglio;
+    var jsonResp;
+
    //Esegue query
-    var newUser = await db.execute('INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso) values (?,?,?,?,?,?)', [nome,cognome,email,password,citta,tipo_accesso])    
-    .then( newU => {
-        res.status(201).json({ 
-            messages : 'OK',
-        });
+  
+    //var hashedPassword = await bcrypt.hashSync(password,12);
+    //console.log("PPP ", hashedPassword);
+  
+  
+
+    await db.execute('INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso) values (?,?,?,?,?,?)', [nome,cognome,email,password,citta,tipo_accesso])
+    .then( newUser => {console.log("prima utente");
+        idUtente = newUser[0].insertId;
     })
-    .catch( error => {
-        return res.status(422).json({
-            message : 'Errore nel Salvataggio'
-        });
-    })
-    
-/*
-    await db.execute('SELECT * FROM utente WHERE email = ?', [email])
-    .then( ([rows,fields]) => {
-        console.log("IDDD ",rows[0].idutente);
-        idUtente = rows[0].idutente;
-        console.log("IDutente ",idUtente);
-    })
-    .catch( error => {
-        console.log(error);
-    })
-    console.log("idUser: ",idUtente);
-*/
-    idUtente = await selectUserByEmail(email); 
-    console.log(idUtente);
-    //await createPortafoglio(idUtente);
-    /*db.execute('INSERT INTO portafoglio (idutente) values (?)', [idUtente])
-    .then()
-    .catch();
-*/
+    .catch( err => {
+        jsonResp = {
+            message : err
+        }
+    });
+
+    //creazione garage 
     await db.execute('INSERT INTO garage (idutente) values (?)', [idUtente])
-    .then()
-    .catch();
-
+    .then( newGarage => {
+        console.log("prima ga");
+        idGarage = newGarage[0].insertId;
+    })
+    .catch( err => {
+        jsonResp = {
+            message : err
+        }
+    });;
     
 
-    
+    //creazione portafoglio 
+    await db.execute('INSERT INTO portafoglio (idutente) values (?)', [idUtente])
+    .then( newPortafoglio => {console.log("prima pè");
+        idPortafoglio = newPortafoglio[0].insertId;
+    })
+    .catch( err => {
+        jsonResp = {
+            message : err
+        }
+    });
+ 
+
+
+    console.log("utente, garage, portafoglio", idUtente, idGarage, idPortafoglio);
+    if(idUtente == idGarage == idPortafoglio){
+        console.log("ok");
+        return res.status(201).json({
+            message : "Inserimento completato"
+        });
+    }
+    else{
+        console.log("Valori non consistenti")
+        return res.status(422).json({
+            message : jsonResp
+        })
+    }
+      
+ 
 }
+
+
+    
+ 
+
+ 
 
