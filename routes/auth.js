@@ -5,7 +5,14 @@ const { body } = require('express-validator');
 const authController = require('../controllers/auth');
 
 
-router.get('/login', [], authController.getUtenti);
-router.post('/register', [], authController.insertUtente);
+
+router.post('/register', [
+    body('password').trim().isLength({ min : 5}).withMessage('Inserire una password valida (almeno 8 caratteri')
+
+], authController.createUtente);
  
+
+router.post('/login', authController.loginApp);
+
+
 module.exports = router;
