@@ -52,8 +52,11 @@ exports.loginApp = async (req,res,next) => {
     
 }
 
-
-
+var idUtente;
+var idGarage;
+var idPortafoglio;
+var idStileGuida;
+var tipo;
 /** /auth/register/
  * Crea utente (Registrazione): Creazione utente con portafoglio e garage associati all'utente
  * @param {*} req 
@@ -69,52 +72,54 @@ exports.createUtente = async (req,res, next) => {
             error : errors.array()
         });
     }
-    var nome = req.body.nome;
-    var cognome = req.body.cognome;
-    var email = req.body.email;
-    var password = req.body.password;
-    var citta = req.body.citta;
-    var tipo_accesso = 'app';
-
+    let nome = req.body.nome;
+    let cognome = req.body.cognome;
+    let email = req.body.email;
+    let password = req.body.password;
+    let citta = req.body.citta;
+    tipo = "Viaggiatore";
+    let tipo_accesso = 'app';
      
-    var idUtente;
-    var idGarage;
-    var idPortafoglio;
-    var jsonResp;
-
-   //Esegue query
+     
   
-    var hashedPassword = await bcrypt.hashSync(password,12);
-  
-
+    var hashedPassword = await bcrypt.hashSync(password,12); //bcrypt password
+    let idUt;
+     
+ //Esegue query insert utente
     await db.execute('INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso) values (?,?,?,?,?,?)', [nome,cognome,email,hashedPassword,citta,tipo_accesso])
     .then( newUser => {console.log("prima utente");
-        idUtente = newUser[0].insertId;
+        idUt = newUser[0].insertId;
     })
-    .catch();
+    .catch(err => {
+        res.json({
+            message : 'utente'
+        })
+    });
 
-    //creazione garage 
-    await db.execute('INSERT INTO garage (idutente) values (?)', [idUtente])
-    .then( newGarage => {
-         idGarage = newGarage[0].insertId;
-    })
-    .catch();
     
+   
+    this.idUtente = idUt;
+    
+    await createGarage(this.idUtente); //Creazione garage 
 
-    //creazione portafoglio 
-    await db.execute('INSERT INTO portafoglio (idutente) values (?)', [idUtente])
-    .then( newPortafoglio => {console.log("prima pè");
-        idPortafoglio = newPortafoglio[0].insertId;
-    })
-    .catch();
- 
+    await createPortafoglio(this.idUtente); //creazione portafoglio
 
-
-    console.log("utente, garage, portafoglio", idUtente, idGarage, idPortafoglio);
-    if(idUtente === idGarage && idUtente === idPortafoglio ){
+    await createStileGuida(this.idUtente, tipo);   //creazione stile di guida
+     
+  
+    console.log("utente, garage, portafoglio, stilediguida", idUt, idGarage, idPortafoglio, idStileGuida);
+    if(idUt === idGarage && idUtente === idPortafoglio ){  
         console.log("ok");
         return res.status(201).json({
             message : "Inserimento completato",
+            userEmail : req.body.email,
+            userNome : req.body.nome
+        });
+    }
+    else if(idUt > 0 && idGarage > 0 && idPortafoglio > 0 && idStileGuida >= 0 ){ 
+        console.log("ok");
+        return res.status(201).json({
+            message : "Inserimento completato: gli id non sono consistenti",
             userEmail : req.body.email,
             userNome : req.body.nome
         });
@@ -131,7 +136,87 @@ exports.createUtente = async (req,res, next) => {
 
 
     
- 
+/**
+ * CreateGarage : Crazioen del garage dell'utente
+ * @param {*} idUtente :Id utente foreignKey in Garage
+ */
+async function createGarage(idUtente){
+      //creazione garage 
+       console.log("UTENTE GARAGE",  idUtente);
+      await db.execute('INSERT INTO garage (idutente) values (?)', [idUtente])
+      .then( newGarage => {
+           return idGarage = newGarage[0].insertId;
+      })
+      .catch(err => {
+        res.json({
+            message : 'garage'
+        })
+    });
+} 
 
- 
+/**
+ * createPortafoglio: creazoine del portafoglio dell'utente
+ * @param {*} idUtente : IdUtente foreign key in portafoglio
+ */
+async function createPortafoglio(idUtente){
+   //creazione portafoglio 
+    await db.execute('INSERT INTO portafoglio (idutente) values (?)', [idUtente])
+    .then( newPortafoglio => {
+        return idPortafoglio = newPortafoglio[0].insertId;
+    })
+    .catch(err => {
+        res.json({
+            message : 'portafoglio'
+        })
+    });
+} 
 
+
+/**
+ * createStileGiuida: creazione dello stile di guida dell'utente sulla base del tipo stabilito.
+ * @param {*} idUtente 
+ * @param {*} tipo 
+ */
+async function createStileGuida(idUtente, tipo){
+    console.log("tipo ", tipo);
+    console.log("ut " ,idUtente)
+    let mediaSettimanale = 150;
+    let costanteCrescita = 1;
+    let tolleranzaMin = 120;
+    let tolleranzaMax = 180;
+    if(tipo==='Viaggiatore'){
+        mediaSettimanale = 220;
+        costanteCrescita = 0.5;
+        tolleranzaMin = 180;
+        tolleranzaMax = 400;
+         
+    }
+    else if(tipo==='Standard'){
+        console.log("in");
+        mediaSettimanale = 150;
+        costanteCrescita = 1;
+        tolleranzaMin = 120;
+        tolleranzaMax = 180;
+        
+    }
+    else if(tipo==='Salutista'){
+        mediaSettimanale = 100;
+        costanteCrescita = 2;
+        tolleranzaMin = 0;
+        tolleranzaMax = 120;    
+    }
+     
+    //console.log("*S*S*", mediaSettimanale, costanteCrescita, tolleranzaMax, tolleranzaMin);
+
+    await db.execute('INSERT INTO stilediguida (idutente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)', [idUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax])
+    .then( newStileDiGuida => {
+        console.log(newStileDiGuida[0]);
+        return idStileGuida = newStileDiGuida[0].insertId;
+    })
+    .catch( err => {
+        res.json({
+            message : 'stilediguida'
+        })
+    });
+} 
+ 
