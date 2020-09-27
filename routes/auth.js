@@ -14,6 +14,7 @@ router.post('/register', [
  
 
 router.post('/login', authController.loginApp);
+router.get('/login/me', isAuth, authController.loginMe);
 
 router.get('/facebook',  authController.loginFb);
 

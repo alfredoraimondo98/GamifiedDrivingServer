@@ -40,7 +40,6 @@ exports.loginApp = async (req,res,next) => {
     const email = req.body.email;
     const password = req.body.password;
     
-
    // let loginUser;
    // var hashedPassword = await bcrypt.hashSync(password,12);
     console.log("mail" , email)
@@ -54,14 +53,14 @@ exports.loginApp = async (req,res,next) => {
                  
                 const token = jwt.sign(
                     {
-                        idUtente : row[0].idUtente,
+                        idUtente : row[0].idutente,
                         email : row[0].email,
-                        name : row[0].name
+                        name : row[0].nome
                     },'M1JECD2YJHETVBR33C3QSH8B74316TWVTKPVZSJBIZID30ETEXD5H29X57MKGVGQ',{expiresIn : '1h'});
                   
                 res.status(201).json({ 
                     messages : 'Login success',
-                    id : row[0].idUtente,
+                    id : row[0].idutente,
                     token : token,
                 });
                console.log(token);
@@ -78,9 +77,11 @@ exports.loginApp = async (req,res,next) => {
             message : 'Email non trovata'
         });
     });
-     
-    
 }
+
+exports.loginMe = ((req,res,next) => {
+
+})
 
 
 
@@ -88,8 +89,6 @@ var mediaSettimanale = 0;
 var costanteCrescita = 0;
 var tolleranzaMin = 0;
 var tolleranzaMax = 0;
-
-
 /** /auth/register/
  * Crea utente (Registrazione): Creazione utente con portafoglio e garage associati all'utente
  * @param {*} req 
