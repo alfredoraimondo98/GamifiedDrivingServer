@@ -16,7 +16,10 @@ router.post('/register', [
 router.post('/login', authController.loginApp);
 router.get('/login/me', isAuth, authController.loginMe);
 
-router.get('/facebook',  authController.loginFb);
+router.get('/facebook',  passport.authenticate("facebook"));
+router.get('/facebook/callback', passport.authenticate('facebook', { successRedirect: '/auth/successLoginFacebook', failureRedirect: '/auth/errorLogin' }));
+router.get('/successLoginFacebook', authController.successFb);
+router.post('/errorLogin', authController.errorFb);
 
 
 module.exports = router;
