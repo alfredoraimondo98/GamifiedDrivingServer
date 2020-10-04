@@ -6,6 +6,7 @@ const isAuth = require('../middleware/is-auth');
 
 router.post('/getProfilo', profiloController.getProfilo);
 
+router.post('/garage/getGarage', profiloController.getGarage);
 
 
 module.exports = router;

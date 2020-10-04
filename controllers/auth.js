@@ -288,6 +288,16 @@ exports.createUtente = async (req, res, next) => {
     let idUt;
 
 
+    let auto = [];
+    try{ 
+        const [rows, field] =await db.execute('SELECT * FROM auto');
+        auto = rows;
+    }
+    catch(err){
+        console.log(err);
+    }
+
+
     try {
         conn.beginTransaction(err => {
             if (err) {
@@ -326,6 +336,23 @@ exports.createUtente = async (req, res, next) => {
                     var idInsertGarage = result.insertId;
 
 
+
+                    //Inserisce auto nel parcheggio del garage
+                    auto.forEach( (item) => {
+                        console.log(item);
+                        conn.query('INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, item.idauto, true, false], (err, resul)=>{
+                            if (err) {
+                                conn.rollback((err) => {
+                                    console.log("Create parcheggio error", err);
+                                });
+                                return res.status(422).json({
+                                    message: 'Errore insert garage'
+                                });  
+                            }
+                           
+                        });
+                
+                    })
 
                     conn.query('INSERT INTO portafoglio (idutente) values (?)', [idInsertUtente], (err, result) => {
                         if (err) {
@@ -422,3 +449,9 @@ exports.createUtente = async (req, res, next) => {
         tolleranzaMax = 120;    
     }
  }
+
+
+ async function createParcheggio(idGarage){
+
+ }    
+        
