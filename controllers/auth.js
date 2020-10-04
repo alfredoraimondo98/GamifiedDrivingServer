@@ -12,6 +12,7 @@ const utilsFb = require('../utils/facebook');
 
  
 var user;
+var tipo_accesso;
 /**
  * Login with facebook
  * @param {*} req 
@@ -20,14 +21,12 @@ var user;
  */
 exports.loginFb =  (req,res,next) => {
 
- //   res.status(201).json({
- //       message: 'ok'
- //   })
-     
 }
 
+/**
+ * recupera informazioni utente login with facebook
+ */
 async function getUserFacebook() {
-    
     var promise = new Promise(function(resolve, reject) {
         FB.api('me?fields=email,name,birthday,friends{name},picture,location,id', 'post', ( (result) => {
             if(!result || result.error) {
@@ -37,13 +36,6 @@ async function getUserFacebook() {
                 });
               }
                
-            
-           /* console.log('Post Email: ' + res.email);
-            console.log('Post Name: ' + res.name);
-            console.log('Post birthday: ' + res.birthday);
-            console.log('Post Friends: ' + res.friends.summary.total_count);
-            console.log('Post Picture: ' + res.picture.data.url);
-            console.log('Citta: ' + res.location.name);*/
               let nameDisplay = result.name;
               let nome = nameDisplay.split(" ")[0];
               let cognome = nameDisplay.split(" ")[1];
@@ -66,68 +58,72 @@ async function getUserFacebook() {
 }
 
 
-var tipo_accesso;
-
-exports.successFb = async (req, res, next) => {
-     
-    var userDati =  utilsFb.datifb()
-    //console.log("**", userDati);
-    FB.setAccessToken(userDati.token);
-
-   
-    var promiseGetUtenteFacebook = getUserFacebook();
-    
-    
-    const utenteFacebook = await promiseGetUtenteFacebook;
-    //console.log("ritorno", utenteFacebook);
-  
-   var ut;
-   
-   try{
-    const [row, fields] = await db.execute('SELECT * FROM utente WHERE email = ?', [utenteFacebook.email]);
-    //.then( ([row,field]) =>{
-        if(row[0]) { //se esiste
-            ut = row[0]; // lo salviamo in ut
-            console.log(row[0]) 
-            console.log(ut.password);
-        }
-        else{
-            ut = null; //se l'utente non è stato trovato, allora dobbiamo inserirlo
-        }
-    }
-    catch(err){
-        console.log("err", err);
-    } 
-
-    user = ut;
-    dispatcherLoginWithFb(req,res,next,ut);
- 
-}
 
 
+/**
+ * Redirect error login with facebook
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 exports.errorFb = (req,res,next) => {
-     
     res.status(201).json({
         message : 'login fb errore'
     })
  
 }
 
+exports.successFb = async (req, res, next) => {
+     
+    var userDati =  utilsFb.datifb()
+    //console.log("**", userDati);
+    FB.setAccessToken(userDati.token);
+   
+    var promiseGetUtenteFacebook = getUserFacebook();
+    
+    const utenteFacebook = await promiseGetUtenteFacebook;
+    console.log("ritorno", utenteFacebook);
+  
+   var userFb;
+   try{
+    const [row, fields] = await db.execute('SELECT * FROM utente WHERE email = ?', [utenteFacebook.email]);
+    //.then( ([row,field]) =>{
+        if(row[0]) { //se esiste
+            userFb = row[0]; // lo salviamo in ut
+            console.log(row[0]) 
+            console.log(userFb.password);
+        }
+        else{
+            userFb = null; //se l'utente non è stato trovato, allora dobbiamo inserirlo
+        }
+    }
+    catch(err){
+        console.log("err", err);
+    } 
+
+    // console.log("UserFb", userFb);
+    // console.log("User", user);
+    
+     dispatcherLoginWithFb(req,res,next,userFb);
+ 
+}
+
+
+
 /**
  * Verifica, in seguito ad accesso tramite FB, se si tratta di un nuovo utente o meno.
  * @param {*} ut 
  */
-dispatcherLoginWithFb = (req,res,next,ut) => {
-    if(ut != null){
-        if(ut.tipo_accesso === 'facebook') {
-            //già ha effettuato una volta l'accesso con fb -> vai a login
-            tipo_accesso = 'facebook';
-            
+dispatcherLoginWithFb = (req,res,next,userFb) => {
+    //console.log("disp", userFb);
+    if(userFb != null){
+        if(userFb.tipo_accesso === 'facebook') { //già ha effettuato una volta l'accesso con fb -> vai a login
+            tipo_accesso = 'facebook'; 
             this.loginApp(req,res,next)
         }
-        else if(ut.tipo_accesso === 'app'){
-            //già ha effettuato l'accesso da app ma vuole accedere con facebook -> update dell'utente
-            tipo_accesso = 'app';
+        else if(userFb.tipo_accesso === 'app'){//già ha effettuato l'accesso da app ma vuole accedere con facebook -> update dell'utente
+            tipo_accesso='facebook';
+            db.execute('UPDATE  utente SET tipo_accesso = ? WHERE email = ?', [tipo_accesso, userFb.email])
         }
     }
     else{ //Nuovo utente, procedi con la registrazione
@@ -155,8 +151,9 @@ exports.loginApp = async (req,res,next) => {
     let email;
     let password;
     if(tipo_accesso === 'facebook'){
+        console.log("UUU",user);
         email = user.email;
-        password = user.password;
+        password = 'passwordforfb';
     }
     else{
     const errors = validationResult(req);
@@ -183,7 +180,7 @@ exports.loginApp = async (req,res,next) => {
          if(bcrypt.compare(password, row[0].password, (err, data) => {
              if(err) throw err;
              if(data){
-                 
+                 console.log("*é*é");
                 const token = jwt.sign(
                     {
                         idUtente : row[0].idutente,
@@ -302,7 +299,7 @@ exports.createUtente = async (req, res, next) => {
                         conn.rollback((err) => {
 
                             console.log("Garageerror", err);
-                            conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
+                            //conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
                         });
                         return res.status(422).json({
                             message: 'Errore insert garage'
@@ -317,8 +314,8 @@ exports.createUtente = async (req, res, next) => {
                             conn.rollback((err) => {
 
                                 console.log("Garageerror", err);
-                                conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
-                                conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
+                               // conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
+                              //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
                             });
                             return res.status(422).json({
                                 message: 'Errore insert portafoglio'
@@ -335,9 +332,9 @@ exports.createUtente = async (req, res, next) => {
                                 conn.rollback((err) => {
 
                                     console.log("Garageerror", err);
-                                    conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
-                                    conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
-                                    conn.execute('DELETE FROM portafoglio WHERE idutente = ?', [idInsertUtente]);
+                                  //  conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
+                                  //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
+                                  //  conn.execute('DELETE FROM portafoglio WHERE idutente = ?', [idInsertUtente]);
                                 });
                                 return res.status(422).json({
                                     message: 'Errore insert stile di guida'
