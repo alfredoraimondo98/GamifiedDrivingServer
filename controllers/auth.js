@@ -9,7 +9,7 @@ const passport = require("passport")
 const FacebookStrategy = require("passport-facebook").Strategy
 const FB = require('fb');
 const utilsFb = require('../utils/facebook');
-
+const profiloController = require('./profilo');
  
 var user;
 var tipo_accesso;
@@ -173,40 +173,58 @@ exports.loginApp = async (req,res,next) => {
    // var hashedPassword = await bcrypt.hashSync(password,12);
     console.log("mail" , email);
     console.log("pass", password);
-    await db.execute('SELECT * FROM utente WHERE email = ?', [email])
-    .then( ([row, fields]) => {
-          //loginUser = row;
-          console.log(row[0])
-         if(bcrypt.compare(password, row[0].password, (err, data) => {
-             if(err) throw err;
-             if(data){
-                 console.log("*é*é");
-                const token = jwt.sign(
-                    {
-                        idUtente : row[0].idutente,
-                        email : row[0].email,
-                        name : row[0].nome
-                    },'M1JECD2YJHETVBR33C3QSH8B74316TWVTKPVZSJBIZID30ETEXD5H29X57MKGVGQ',{expiresIn : '1h'});
-                  
-                res.status(201).json({ 
-                    messages : 'Login success',
-                    id : row[0].idutente,
-                    token : token,
-                });
-               console.log(token);
-             }
-             else{
-                return res.status(401).json({
-                    message : 'password errata'
-                })
-             }
-        }));
-    })
-    .catch( err => {
+    let utenteLogin;
+    let portafoglio;
+    try{
+         const [row,field] = await db.execute('SELECT * FROM utente WHERE email = ?', [email]);
+         utenteLogin = row[0];
+    }
+    catch(err){
+        console.log(err);
         return res.status(401).json({
             message : 'Email non trovata'
         });
-    });
+    }
+
+    try{
+        portafoglio = await profiloController.getPortafoglio(req,res,next,utenteLogin.idutente);
+        console.log("pp",portafoglio);
+    }
+    catch(err){
+
+    }
+    
+
+    console.log(utenteLogin)
+        if(bcrypt.compare(password, utenteLogin.password, (err, data) => {
+            if(err) throw err;
+            if(data){
+                
+            const token = jwt.sign(
+                {
+                    idUtente : utenteLogin.idutente,
+                    email : utenteLogin.email,
+                    name : utenteLogin.nome
+                },'M1JECD2YJHETVBR33C3QSH8B74316TWVTKPVZSJBIZID30ETEXD5H29X57MKGVGQ',{expiresIn : '1h'});
+            
+            
+            res.status(201).json({ 
+                messages : 'Login success',
+                id : utenteLogin.idutente,
+                token : token,
+                portafoglio : portafoglio
+                
+            });
+            console.log(token);
+            }
+            else{
+            return res.status(401).json({
+                message : 'password errata'
+            })
+            }
+    }));
+   // })
+   
 }
 
  
