@@ -17,10 +17,12 @@ app.use(passport.session()) // acts as a middleware to alter the req object and 
 const authRoutes = require('./routes/auth');
 const dataRoutes = require('./routes/data');
 const profiloRoutes = require('./routes/profilo');
+const shopRoutes = require('./routes/shop');
 
 app.use('/auth', authRoutes);
 app.use('/data', dataRoutes);
 app.use('/profilo', profiloRoutes);
+app.use('/shop', shopRoutes);
 
 
 
