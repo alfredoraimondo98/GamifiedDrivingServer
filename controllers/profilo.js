@@ -170,3 +170,65 @@ async function setAutoPredefinita(idgarage, idAuto){
 
 }
 
+
+exports.getClassificaGenerale = async (req,res,next) => {
+    let classifica;
+    try{
+        const [rows, field] = await db.execute(`SELECT * 
+                                                FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
+                                                ON gamifieddrivingdb.utente.idutente = gamifieddrivingdb.portafoglio.idutente 
+                                            ORDER BY punti_drivepass DESC
+        `);
+        classifica = rows;
+    }
+    catch(err){
+       res.status(401).json({
+           message : 'impossibile ottenere la classifica generale'
+       })
+    }
+
+    res.status(201).json({
+        message : 'classifica generale',
+        classifica : classifica
+    })
+}
+
+
+exports.getClassificaLocation = async (req,res,next) => {
+    let idutente = req.body.id;
+    let utente;
+    let classifica;
+    console.log(idutente);
+    try{
+        const [row, field] = await db.execute("SELECT * FROM utente WHERE idutente = ?", [idutente]);
+        utente = row[0];
+    }   
+    catch(err){
+        res.status(401).json({
+            message : 'impossibile recuperare dati utente'
+        })
+    }
+    
+
+    try{
+        const [rows, field] = await db.execute(`SELECT * 
+                                                FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
+                                                ON gamifieddrivingdb.utente.idutente = gamifieddrivingdb.portafoglio.idutente 
+                                                WHERE citta = ?
+                                             ORDER BY punti_drivepass DESC
+        `, [utente.citta]);
+        classifica = rows;
+    }
+    catch(err){
+       res.status(401).json({
+           message : 'impossibile ottenere la classifica generale'
+       })
+    }
+
+    res.status(201).json({
+        message : 'classifica generale',
+        classifica : classifica
+    })
+}
+
+
