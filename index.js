@@ -18,12 +18,13 @@ const authRoutes = require('./routes/auth');
 const dataRoutes = require('./routes/data');
 const profiloRoutes = require('./routes/profilo');
 const shopRoutes = require('./routes/shop');
+const drivepassRoutes = require('./routes/drivepass');
 
 app.use('/auth', authRoutes);
 app.use('/data', dataRoutes);
 app.use('/profilo', profiloRoutes);
 app.use('/shop', shopRoutes);
-
+app.use('/shop', drivepassRoutes);
 
 
 
