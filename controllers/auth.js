@@ -176,6 +176,7 @@ exports.loginApp = async (req,res,next) => {
     let utenteLogin;
     let portafoglio;
     let garage;
+    let stileDiGuida;
     try{
          const [row,field] = await db.execute('SELECT * FROM utente WHERE email = ?', [email]);
          utenteLogin = row[0];
@@ -194,6 +195,12 @@ exports.loginApp = async (req,res,next) => {
         if(!garage){
             return res.status(401).json({
                 message : 'garage utente non disponibile'
+            });
+        }
+        stileDiGuida = await getStileDiGuidaByIdUtente(utenteLogin.id_utente);
+        if(!garage){
+            return res.status(401).json({
+                message : 'stilediguida utente non disponibile'
             });
         }
     }
@@ -218,9 +225,18 @@ exports.loginApp = async (req,res,next) => {
             
             
             res.status(201).json({ 
-                messages : 'Login success',
                 id_utente : utenteLogin.id_utente,
-                portafoglio : portafoglio,
+                nome : utenteLogin.nome,
+                cognome : utenteLogin.cognome,
+                email : utenteLogin.email,
+                password : utenteLogin.password,
+                citta : utenteLogin.citta,
+                tipo_accesso : utenteLogin.tipo_accesso,
+                tipo_utente : stileDiGuida.tipo,
+                livello : portafoglio.livello,
+                ac_point : portafoglio.acpoint,
+                ticket : portafoglio.ticket,
+                punti_drivepass : portafoglio.punti_drivepass,
                 id_garage : garage.id_garage,
                 token : token,
             });
@@ -536,6 +552,25 @@ async function getGarageByIdUtente(idUtente){
         return err
     }
     return garage;
+}
+
+/**
+ * Restituisce stilediguida di idUtente
+ * @param {*} idUtente 
+ */
+async function getStileDiGuidaByIdUtente(idUtente){
+    let stileDiGuida;
+    try{
+        const [row, fields] = await db.execute('SELECT * FROM stilediguida WHERE id_utente = ?', [idUtente]);
+        if(!row[0]){
+            return false;
+        }
+        garage = row[0];
+    }
+    catch(err) {
+        return err
+    }
+    return stileDiGuida;
 }
 
 /**
