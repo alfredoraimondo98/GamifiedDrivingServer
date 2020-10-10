@@ -220,7 +220,7 @@ exports.loginApp = async (req,res,next) => {
             res.status(201).json({ 
                 messages : 'Login success',
                 id_utente : utenteLogin.id_utente,
-                id_portafoglio : portafoglio.id_portafoglio,
+                portafoglio : portafoglio,
                 id_garage : garage.id_garage,
                 token : token,
             });
