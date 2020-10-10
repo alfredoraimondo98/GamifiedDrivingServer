@@ -238,6 +238,7 @@ exports.loginApp = async (req,res,next) => {
                 ticket : portafoglio.ticket,
                 punti_drivepass : portafoglio.punti_drivepass,
                 id_garage : garage.id_garage,
+                id_portafoglio : portafoglio.id_portafoglio,
                 token : token,
             });
             console.log(token);
@@ -565,7 +566,7 @@ async function getStileDiGuidaByIdUtente(idUtente){
         if(!row[0]){
             return false;
         }
-        garage = row[0];
+        stileDiGuida = row[0];
     }
     catch(err) {
         return err
