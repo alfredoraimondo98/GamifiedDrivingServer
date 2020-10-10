@@ -574,6 +574,9 @@ async function getStileDiGuidaByIdUtente(idUtente){
     return stileDiGuida;
 }
 
+
+
+
 /**
  * Restituisce tutte le auto in parcheggio di un utente con idGarage
  * @param {*} idGarage 

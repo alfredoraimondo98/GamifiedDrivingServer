@@ -52,14 +52,8 @@ exports.getProfilo = async (req,res,next) => {
    }
   
    res.status(201).json({
-       message : 'ok',
-       numeroSessioniGuide : numeroSessioniGuide,
-       livello : portafoglio.livello,
-
+       totale_sessioni : numeroSessioniGuide,
    })
-   
-
-
 }
 
 /**
