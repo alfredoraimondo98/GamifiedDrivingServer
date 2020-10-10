@@ -26,7 +26,7 @@ exports.getDrivepass = async (req,res,next) => {
         if(item.tipo_premio === 'auto'){
             let auto;
             try{
-                const [row, field] = await db.execute('SELECT * FROM auto WHERE idauto = ?', [item.premio]);
+                const [row, field] = await db.execute('SELECT * FROM auto WHERE id_auto = ?', [item.premio]);
                 auto = row[0]; 
             }
             catch(err){
@@ -54,7 +54,7 @@ exports.getDrivepass = async (req,res,next) => {
         if(item.tipo_premio === 'avatar'){
             let avatar;
             try{
-                const [row, field] = db.execute('SELECT * FROM avatar WHERE idavatar = ?', [item.premio]);
+                const [row, field] = db.execute('SELECT * FROM avatar WHERE id_avatar = ?', [item.premio]);
                 avatar = row[0]; 
             }
             catch(err){

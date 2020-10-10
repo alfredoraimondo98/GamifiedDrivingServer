@@ -10,7 +10,8 @@ const FacebookStrategy = require("passport-facebook").Strategy
 const FB = require('fb');
 const utilsFb = require('../utils/facebook');
 const profiloController = require('./profilo');
- 
+const queriesController = require('./queries');
+
 var user;
 var tipo_accesso;
 /**
@@ -47,6 +48,7 @@ async function getUserFacebook() {
                 cognome : cognome,
                 email : result.email,
                 citta : result.location.name,
+                friends : result.friends,
                 tipo : 'Standard',
                 id : result.id
               }
@@ -156,18 +158,16 @@ exports.loginApp = async (req,res,next) => {
         password = 'passwordforfb';
     }
     else{
-    const errors = validationResult(req);
-    
-    if(!errors.isEmpty()){
-        return res.status(422).json({
-            message : 'Error input Parametri',
-            error : errors.array()
-        });
-    }
-
-
-    email = req.body.email;
-    password = req.body.password;
+        const errors = validationResult(req);
+        
+        if(!errors.isEmpty()){
+            return res.status(422).json({
+                message : 'Error input Parametri',
+                error : errors.array()
+            });
+        }
+        email = req.body.email;
+        password = req.body.password;
     }
    // let loginUser;
    // var hashedPassword = await bcrypt.hashSync(password,12);
@@ -175,34 +175,43 @@ exports.loginApp = async (req,res,next) => {
     console.log("pass", password);
     let utenteLogin;
     let portafoglio;
+    let garage;
     try{
          const [row,field] = await db.execute('SELECT * FROM utente WHERE email = ?', [email]);
          utenteLogin = row[0];
+        if(!row[0]){
+            return res.status(401).json({
+                message : 'Email non trovata'
+            });
+        }
+        portafoglio = await getPortafoglioByIdUtente(utenteLogin.id_utente);
+        if(!portafoglio){
+            return res.status(401).json({
+                message : 'portafoglio utente non disponibile'
+            });
+        }
+        garage = await getGarageByIdUtente(utenteLogin.id_utente);
+        if(!garage){
+            return res.status(401).json({
+                message : 'garage utente non disponibile'
+            });
+        }
     }
     catch(err){
         console.log(err);
         return res.status(401).json({
-            message : 'Email non trovata'
+            message : err
         });
     }
 
-    try{
-        portafoglio = await profiloController.getPortafoglio(req,res,next,utenteLogin.idutente);
-        console.log("pp",portafoglio);
-    }
-    catch(err){
 
-    }
-    
-
-    console.log(utenteLogin)
         if(bcrypt.compare(password, utenteLogin.password, (err, data) => {
             if(err) throw err;
             if(data){
                 
             const token = jwt.sign(
                 {
-                    idUtente : utenteLogin.idutente,
+                    idUtente : utenteLogin.id_utente,
                     email : utenteLogin.email,
                     name : utenteLogin.nome
                 },'M1JECD2YJHETVBR33C3QSH8B74316TWVTKPVZSJBIZID30ETEXD5H29X57MKGVGQ',{expiresIn : '1h'});
@@ -210,10 +219,10 @@ exports.loginApp = async (req,res,next) => {
             
             res.status(201).json({ 
                 messages : 'Login success',
-                id : utenteLogin.idutente,
+                id_utente : utenteLogin.id_utente,
+                id_portafoglio : portafoglio.id_portafoglio,
+                id_garage : garage.id_garage,
                 token : token,
-                portafoglio : portafoglio
-                
             });
             console.log(token);
             }
@@ -223,8 +232,6 @@ exports.loginApp = async (req,res,next) => {
             })
             }
     }));
-   // })
-   
 }
 
  
@@ -251,9 +258,7 @@ exports.createUtente = async (req, res, next) => {
     let tipo;
     //console.log("createUtente ", user);
     //Verifica se si sta effettuando l'accesso con fb o si sta registrando tramite app.
-    if (tipo_accesso === 'facebook') {
-      
-
+    if (tipo_accesso === 'facebook') { //Si sta registrando per la prima volta e sta accedendo con facebook
         console.log("creo utente fb");
         nome = user.nome;
         cognome = user.cognome;
@@ -263,8 +268,7 @@ exports.createUtente = async (req, res, next) => {
         tipo = user.tipo;
         tipo_accesso = 'facebook';
     }
-    else {
-
+    else { //si sta registrando tramite form app
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -288,17 +292,25 @@ exports.createUtente = async (req, res, next) => {
     let idUt;
 
 
-    let auto = [];
+   /*  let auto = [];
     try{ 
         const [rows, field] =await db.execute('SELECT * FROM auto');
         auto = rows;
     }
     catch(err){
         console.log(err);
-    }
+    } */
 
 
     try {
+       
+        conn.connect((err) =>{ 
+            if(err) {  
+              console.error("errore di connessione:" + err.stack ); 
+              return;
+            }
+            console.log('connesso come id' + conn.threadId);
+        });
         conn.beginTransaction(err => {
             if (err) {
                 console.log(err);
@@ -308,6 +320,7 @@ exports.createUtente = async (req, res, next) => {
             }
 
 
+            
             conn.query('INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso) values (?,?,?,?,?,?)', [nome, cognome, email, hashedPassword, citta, tipo_accesso], (err, result) => {
                 if (err) {
 
@@ -322,7 +335,7 @@ exports.createUtente = async (req, res, next) => {
                 var idInsertUtente = result.insertId;
 
 
-                conn.query('INSERT INTO garage (idutente) values (?)', [idInsertUtente], (err, result) => {
+                conn.query('INSERT INTO garage (id_utente) values (?)', [idInsertUtente], (err, result) => {
                     if (err) {
                         conn.rollback((err) => {
 
@@ -338,7 +351,7 @@ exports.createUtente = async (req, res, next) => {
 
 
                     //Inserisce auto nel parcheggio del garage
-                    auto.forEach( (item) => {
+                    /* auto.forEach( (item) => {
                         console.log(item);
                         conn.query('INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, item.idauto, true, false], (err, resul)=>{
                             if (err) {
@@ -352,9 +365,9 @@ exports.createUtente = async (req, res, next) => {
                            
                         });
                 
-                    })
+                    }) */
 
-                    conn.query('INSERT INTO portafoglio (idutente) values (?)', [idInsertUtente], (err, result) => {
+                    conn.query('INSERT INTO portafoglio (id_utente) values (?)', [idInsertUtente], (err, result) => {
                         if (err) {
                             conn.rollback((err) => {
 
@@ -371,8 +384,7 @@ exports.createUtente = async (req, res, next) => {
 
                         defineStileGuida(tipo);
 
-
-                        conn.query('INSERT INTO stilediguida (idutente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)', [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
+                        conn.query('INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)', [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
                             if (err) {
                                 conn.rollback((err) => {
 
@@ -386,40 +398,56 @@ exports.createUtente = async (req, res, next) => {
                                 });
                             }
                             var idInsertStileGuida = result.insertId;
-                        });
+                       
 
-
-                        conn.commit((err) => {
-                            if (err) {
-                                conn.rollback((err) => {
-                                    return res.status(422).json({
-                                        message: 'Impossibile effettuare il commit. Registrazione fallita!'
+                            conn.query('INSERT INTO statistichegamification (id_utente, id_app, livello) values (?,?,?)', [idInsertUtente, 1, 0], (err, result) => {
+                                if (err) {
+                                    conn.rollback((err) => {
+                                        console.log("error iscrizione a gamifiedDriving", err);
                                     });
+                                    return res.status(422).json({
+                                        message: 'Errore insert statistichegamification'
+                                    });
+                                }
+                                var idInsertStileGuida = result.insertId;
+                        
+
+
+                                conn.commit((err) => {
+                                    if (err) {
+                                        conn.rollback((err) => {
+                                            return res.status(422).json({
+                                                message: 'Impossibile effettuare il commit. Registrazione fallita!'
+                                            });
+                                        });
+                                    }
+                                    else {
+                                        console.log('Transaction Complete.');
+                                        console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
+                                        console.log("chiudo connessione");
+                                        conn.end();
+                                        return res.status(201).json({
+                                            message: 'registraione completata',
+                                            idUtente: idInsertUtente,
+                                            idGarage: idInsertGarage,
+                                            idPortafoglio: idInsertPortafoglio,
+                                            tipo_accesso: tipo_accesso
+                                        });
+                                    }
                                 });
-                            }
-                            else {
-                                console.log('Transaction Complete.');
-                                console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
-                                return res.status(201).json({
-                                    message: 'registraione completata',
-                                    idUtente: idInsertUtente,
-                                    idGarage: idInsertGarage,
-                                    idPortafoglio: idInsertPortafoglio,
-                                    tipo_accesso: tipo_accesso
-                                });
-                            }
-                        });
-                        console.log("chiudo connessione");
-                        conn.end(); //chiusura connessione - fine transazione
+                            }); 
+                        }); 
                     });
                 });
             });
         });
     }
     catch (err) {
+        console.log("chiudo connessione");
+        conn.end();
         console.log(err);
     }
-
+   
 }
 
 
@@ -451,7 +479,82 @@ exports.createUtente = async (req, res, next) => {
  }
 
 
- async function createParcheggio(idGarage){
+   
+/**
+ * Restituisce l'utente con idUtente
+ * @param {*} idUtente 
+ */
+async function getUtente(idUtente) {
+    let utente;
+    try{
+        const [row, fields] = await db.execute('SELECT * FROM utente WHERE id_utente = ?', [idUtente]);
+        if(!row[0]){
+            return false;
+        }
+        utente = row[0];
+    }
+    catch(err) {
+        return err
+    }
+    return utente;
+}
 
- }    
-        
+/**
+ * restituisce portafoglio di idUtente
+ * @param {*} idUtente 
+ */
+async function getPortafoglioByIdUtente(idUtente) {        
+    console.log("cerco questo ", idUtente);
+    let portafoglio;
+    try{
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        if(!row[0]){
+            return false;
+        }
+        portafoglio = row[0];
+    }
+    catch(err) {
+        return err
+    }
+    return portafoglio;
+}
+
+/**
+ * Restituisce il garage di idUtente
+ * @param {*} idUtente 
+ */
+async function getGarageByIdUtente(idUtente){
+    let garage;
+    try{
+        const [row, fields] = await db.execute('SELECT * FROM garage WHERE id_utente = ?', [idUtente]);
+        if(!row[0]){
+            return false;
+        }
+        garage = row[0];
+    }
+    catch(err) {
+        return err
+    }
+    return garage;
+}
+
+/**
+ * Restituisce tutte le auto in parcheggio di un utente con idGarage
+ * @param {*} idGarage 
+ */
+async function getParcheggioByIdGarage(idGarage){
+    let parcheggio;
+    try{
+        const [rows, field] = await db.execute(`SELECT * 
+                                                FROM gamifieddrivingdb.parcheggia JOIN gamifieddrivingdb.auto 
+                                                ON gamifieddrivingdb.parcheggia.id_auto = gamifieddrivingdb.auto.id_auto 
+                                                WHERE gamifieddrivingdb.parcheggia.id_garage = ?`, [idGarage]
+                                            );
+                                            
+        parcheggio = rows;
+    }
+    catch(err){
+        return err;
+    }
+    return parcheggio;
+}

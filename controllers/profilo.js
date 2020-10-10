@@ -20,13 +20,13 @@ exports.getProfilo = async (req,res,next) => {
         });
     }
 
-    id = req.body.id;
+    idUtente = req.body.id_utente;
    
     let numeroSessioniGuide;
     let portafoglio
 
    try{
-    const [row, fields] = await db.execute('SELECT count(*) as NumeroSessioni FROM sessione WHERE idutente = ?', [id]);
+    const [row, fields] = await db.execute('SELECT count(*) as NumeroSessioni FROM sessione WHERE id_utente = ?', [idUtente]);
     console.log("numero guide", row[0]);
     numeroSessioniGuide = row[0].NumeroSessioni;
    }
@@ -38,7 +38,12 @@ exports.getProfilo = async (req,res,next) => {
    }
 
    try{
-      portafoglio = await getPortafoglio(req,res,next,id);
+      portafoglio = await getPortafoglioByIdUtente(idUtente);
+        if(!portafoglio){
+            res.status(401).json({
+                message : 'portafoglio non disponibile'
+            })
+        }
    }
    catch(err){
        res.status(401).json({
@@ -58,29 +63,23 @@ exports.getProfilo = async (req,res,next) => {
 }
 
 /**
- * Recupera tutti i dati del portafoglio di un dato utente (id)
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- * @param {*} id 
+ * restituisce portafoglio di idUtente
+ * @param {*} idUtente 
  */
-exports.getPortafoglio = async (req,res,next,id) =>{
-    var portafoglio;
+async function getPortafoglioByIdUtente(idUtente) {        
+    console.log("cerco questo ", idUtente);
+    let portafoglio;
     try{
-        const [row, fields] = await db.execute('SELECT  * FROM portafoglio WHERE idutente = ?', [id]);
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        if(!row[0]){
+            return false;
+        }
         portafoglio = row[0];
     }
-    catch(err){
-        console.log(err);
-        res.status(401).json({
-            message : err
-        })
+    catch(err) {
+        return err
     }
-
-    console.log("portafoglio" , portafoglio);
     return portafoglio;
-
-
 }
 
 
@@ -102,12 +101,12 @@ exports.getGarage = async (req,res,next) => {
         });
     }
 
-    id = req.body.id;
+    idUtente = req.body.id_utente;
    
     let idGarage;
     let parcheggio = [];
     try{
-        const [row, fields] = await db.execute('SELECT * FROM garage WHERE idutente = ?', [id]);
+        const [row, fields] = await db.execute('SELECT * FROM garage WHERE id_utente = ?', [idUtente]);
         idGarage = row[0].idgarage;
     }
     catch(err){
@@ -133,8 +132,8 @@ async function getParcheggioByIdGarage(idGarage){
     try{
         const [rows, field] = await db.execute(`SELECT * 
                                                 FROM gamifieddrivingdb.parcheggia JOIN gamifieddrivingdb.auto 
-                                                ON gamifieddrivingdb.parcheggia.idauto = gamifieddrivingdb.auto.idauto 
-                                                WHERE gamifieddrivingdb.parcheggia.idgarage = ?`, [idGarage]
+                                                ON gamifieddrivingdb.parcheggia.id_auto = gamifieddrivingdb.auto.id_auto 
+                                                WHERE gamifieddrivingdb.parcheggia.id_garage = ?`, [idGarage]
                                             );
         parcheggio = rows;
         //console.log(parcheggio);
@@ -151,9 +150,9 @@ async function getParcheggioByIdGarage(idGarage){
  * Settare l'auto predefinita da utilizzare
  * @param {*} idAuto 
  */
-async function setAutoPredefinita(idgarage, idAuto){
+async function setAutoPredefinita(idGarage, idAuto){
     try{
-        const [row, field] = await db.execute('UPDATE parcheggia SET predefinito = ? WHERE idgarage = ?', [0, idgarage])
+        const [row, field] = await db.execute('UPDATE parcheggia SET predefinito = ? WHERE id_garage = ?', [0, idUtente])
     }
     catch(err){
         console.log(err);
@@ -161,7 +160,7 @@ async function setAutoPredefinita(idgarage, idAuto){
     }
 
     try{
-        const [row, field] = await db.execute('UPDATE parcheggia SET predefinito = ? WHERE idgarage = ? AND idauto = ?', [1, idgarage, idAuto])
+        const [row, field] = await db.execute('UPDATE parcheggia SET predefinito = ? WHERE id_garage = ? AND id_auto = ?', [1, idUtente, idAuto])
     }
     catch(err){
         console.log(err);
@@ -176,7 +175,7 @@ exports.getClassificaGenerale = async (req,res,next) => {
     try{
         const [rows, field] = await db.execute(`SELECT * 
                                                 FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
-                                                ON gamifieddrivingdb.utente.idutente = gamifieddrivingdb.portafoglio.idutente 
+                                                ON gamifieddrivingdb.utente.id_utente = gamifieddrivingdb.portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
         `);
         classifica = rows;
@@ -195,12 +194,11 @@ exports.getClassificaGenerale = async (req,res,next) => {
 
 
 exports.getClassificaLocation = async (req,res,next) => {
-    let idutente = req.body.id;
+    let idUtente = req.body.id_utente;
     let utente;
     let classifica;
-    console.log(idutente);
-    try{
-        const [row, field] = await db.execute("SELECT * FROM utente WHERE idutente = ?", [idutente]);
+     try{
+        const [row, field] = await db.execute("SELECT * FROM utente WHERE id_utente = ?", [idUtente]);
         utente = row[0];
     }   
     catch(err){
@@ -213,7 +211,7 @@ exports.getClassificaLocation = async (req,res,next) => {
     try{
         const [rows, field] = await db.execute(`SELECT * 
                                                 FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
-                                                ON gamifieddrivingdb.utente.idutente = gamifieddrivingdb.portafoglio.idutente 
+                                                ON gamifieddrivingdb.utente.id_utente = gamifieddrivingdb.portafoglio.id_utente 
                                                 WHERE citta = ?
                                              ORDER BY punti_drivepass DESC
         `, [utente.citta]);

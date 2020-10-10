@@ -6,14 +6,14 @@ const router = express.Router();
 
 
 exports.buyWithTickets = async (req,res,next) => {
-    idutente = req.body.id;
+    idUtente = req.body.id_utente;
     costo = req.body.costo; //costo ticket;
 
     let updateTicket;
     let premio;
 
     try{ //Verifica credito Tickets
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE idutente = ?', [idutente]);
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
         if(row[0].ticket >= costo){
             updateTicket = row[0].ticket - costo;
         }
@@ -30,7 +30,7 @@ exports.buyWithTickets = async (req,res,next) => {
         })
     }
     try{
-        premio = await acquistoPacchetto(idutente, costo); //acquisto pacchetto e generazione del premio
+        premio = await acquistoPacchetto(idUtente, costo); //acquisto pacchetto e generazione del premio
     }
     catch(err){
         res.status(401).json({
@@ -40,7 +40,7 @@ exports.buyWithTickets = async (req,res,next) => {
 
 
     try{ //aggiornamento portafoglio
-        result = await db.execute('UPDATE portafoglio SET ticket = ? WHERE idutente = ?', [updateTicket, idutente])
+        result = await db.execute('UPDATE portafoglio SET ticket = ? WHERE id_utente = ?', [updateTicket, idUtente])
          
     }
     catch(err){
@@ -57,13 +57,15 @@ exports.buyWithTickets = async (req,res,next) => {
     })
 }
 
+
+
 exports.buyWithPoints = async (req,res,next) => {
-    idutente = req.body.id;
+    idUtente = req.body.id;
     costo = req.body.costo; //costo ticket;
 
     let updatePoint
     try{ //verifica points
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE idutente = ?', [idutente]);
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
         if(row[0].ticket >= costo){
             updatePoint = row[0].acpoint - costo;
         }
@@ -79,7 +81,7 @@ exports.buyWithPoints = async (req,res,next) => {
     }
 
     try{
-        premio = await acquistoPacchetto(idutente, costo); //acquisto auto
+        premio = await acquistoPacchetto(idUtente, costo); //acquisto auto
     }
     catch(err){
         res.status(401).json({
@@ -88,7 +90,7 @@ exports.buyWithPoints = async (req,res,next) => {
     }
 
     try{ //aggiornamento portafoglio
-        const [row, field] = await db.execute('UPDATE portafoglio SET acpoint = ? WHERE idutente = ?', [updatePoint, idutente])
+        const [row, field] = await db.execute('UPDATE portafoglio SET acpoint = ? WHERE idutente = ?', [updatePoint, idUtente])
     }
     catch(err){
         console.log(err);
@@ -102,12 +104,12 @@ exports.buyWithPoints = async (req,res,next) => {
 
 /**
  * Acquisto pacchetto Tickets
- * @param {*} idutente 
+ * @param {*} idUtente 
  * @param {*} costo 
  */
-async function acquistoPacchetto(idutente, costo){
+async function acquistoPacchetto(idUtente, costo){
     let auto = [];
-    let idgarage;
+    let idGarage;
     let autoDisponibili = [];
     console.log(costo);
     try{
@@ -119,15 +121,15 @@ async function acquistoPacchetto(idutente, costo){
     }
 
     try{
-        const [row, field] = await db.execute("SELECT * FROM garage WHERE idutente = ? ", [idutente]) //recupera id garage dell'utente
-        idgarage = row[0].idgarage
+        const [row, field] = await db.execute("SELECT * FROM garage WHERE id_utente = ? ", [idUtente]) //recupera id garage dell'utente
+        idGarage = row[0].id_garage
     }
     catch(err){
         return 'Impossibile recuperare id garage: ' + err;
     }
 
     try{
-        const [rows, field] = await db.execute("SELECT * FROM parcheggia WHERE idgarage = ?", [idgarage]) //recupera auto nel parcheggio dell'utente
+        const [rows, field] = await db.execute("SELECT * FROM parcheggia WHERE id_garage = ?", [idGarage]) //recupera auto nel parcheggio dell'utente
         autoDisponibili = rows;
     }
     catch(err){
@@ -139,10 +141,9 @@ async function acquistoPacchetto(idutente, costo){
     console.log(autoRandom);
 
     const randomElement = autoRandom[Math.floor(Math.random() * autoRandom.length)]; //Random vincita
-  
-
+ 
     try{
-        const result = await db.execute("INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idgarage, randomElement.idauto, 1, 0]) //recupera auto nel parcheggio dell'utente
+        const result = await db.execute("INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idGarage, randomElement.id_auto, 1, 0]) //recupera auto nel parcheggio dell'utente
     }
     catch(err){
         return 'Impossibile inserire premio: ' +err;
@@ -165,7 +166,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {
-                if(a.idauto === item.idauto){
+                if(a.id_auto === item.id_auto){
                     bool = true;
                 }
             })
@@ -188,7 +189,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {
-                if(a.idauto === item.idauto){
+                if(a.id_auto === item.id_auto){
                     bool = true;
                 }
             })
@@ -210,7 +211,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {
-                if(a.idauto === item.idauto){
+                if(a.id_auto === item.id_auto){
                     bool = true;
                 }
             })
@@ -232,7 +233,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {
-                if(a.idauto === item.idauto){
+                if(a.id_auto === item.id_auto){
                     bool = true;
                 }
             })
@@ -263,10 +264,10 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
  * @param {*} next 
  */
 exports.getShopAuto = async (req,res,next) =>{
-    let idutente = req.body.id;
+    let idUtente = req.body.id_utente;
 
     let auto = []; //Tutte le auto disponibili
-    let idgarage;
+    let idGarage;
     let autoDisponibili = []; //Auto disponibili per l'utente
     
     try{
@@ -281,8 +282,8 @@ exports.getShopAuto = async (req,res,next) =>{
     }
 
     try{
-        const [row, field] = await db.execute("SELECT * FROM garage WHERE idutente = ? ", [idutente]) //recupera id garage dell'utente
-        idgarage = row[0].idgarage
+        const [row, field] = await db.execute("SELECT * FROM garage WHERE id_utente = ? ", [idUtente]) //recupera id garage dell'utente
+        idGarage = row[0].id_garage
     }
     catch(err){
         res.status(201).json({
@@ -292,7 +293,7 @@ exports.getShopAuto = async (req,res,next) =>{
     }
 
     try{
-        const [rows, field] = await db.execute("SELECT * FROM parcheggia WHERE idgarage = ?", [idgarage]) //recupera auto nel parcheggio dell'utente
+        const [rows, field] = await db.execute("SELECT * FROM parcheggia WHERE id_garage = ?", [idGarage]) //recupera auto nel parcheggio dell'utente
         autoDisponibili = rows;
     }
     catch(err){
@@ -307,7 +308,7 @@ exports.getShopAuto = async (req,res,next) =>{
     let autoIntoShop = auto.filter( (item) => {
         let bool = false;
         autoDisponibili.forEach( (a) => {
-            if(a.idauto === item.idauto){
+            if(a.idauto === item.id_auto){
                 bool = true;
             }
         })
@@ -325,13 +326,13 @@ exports.getShopAuto = async (req,res,next) =>{
 
 
 exports.buyAuto = async (req,res,next) => {
-    let idutente = req.body.id;
-    let idauto = req.body.idauto
-    let idgarage;
+    let idUtente = req.body.id_utente;
+    let idAuto = req.body.id_auto
+    let idGarage;
     let updatePoint;
     let auto;
     try{ //recupera dati auto da acquistare
-        const [row, field] = await db.execute("SELECT * FROM auto WHERE idauto = ? ", [idauto]);
+        const [row, field] = await db.execute("SELECT * FROM auto WHERE id_auto = ? ", [idAuto]);
         auto = row[0];
     }
     catch(err){
@@ -341,8 +342,8 @@ exports.buyAuto = async (req,res,next) => {
     }
 
     try{
-        const [row, field] = await db.execute("SELECT * FROM garage WHERE idutente = ? ", [idutente]);
-        idgarage = row[0].idgarage;
+        const [row, field] = await db.execute("SELECT * FROM garage WHERE id_utente = ? ", [idUtente]);
+        idGarage = row[0].id_garage;
     }
     catch(err){
         res.status(401).json({
@@ -352,7 +353,7 @@ exports.buyAuto = async (req,res,next) => {
 
 
     try{   
-        updatePoint = await verificaPoint(idutente, auto.costo);
+        updatePoint = await verificaPoint(idUtente, auto.costo);
     }
     catch(err){
         res.status(401).json({
@@ -364,7 +365,7 @@ exports.buyAuto = async (req,res,next) => {
 
     if(updatePoint){
         try{ //aggiornamento portafoglio
-            result = await db.execute('UPDATE portafoglio SET acpoint = ? WHERE idutente = ?', [updatePoint, idutente]);
+            result = await db.execute('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updatePoint, idUtente]);
         }
         catch(err){
             res.status(401).json({
@@ -380,7 +381,7 @@ exports.buyAuto = async (req,res,next) => {
     }
 
     try{
-        result = await db.execute('INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) VALUES (?, ?, ?, ?) ', [idgarage, idauto, 1, 0]);
+        result = await db.execute('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?) ', [idGarage, idAuto, 1, 0]);
         res.status(201).json({
             message : 'acquisto completato'
         })
@@ -398,7 +399,7 @@ exports.buyAuto = async (req,res,next) => {
 async function verificaPoint(idutente, costo){
     let updatePoint
     try{ //verifica points
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE idutente = ?', [idutente]);
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idutente]);
         if(row[0].ticket >= costo){
             updatePoint = row[0].acpoint - costo;
             return updatePoint;
