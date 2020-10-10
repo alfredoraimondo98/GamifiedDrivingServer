@@ -8,60 +8,105 @@ const router = express.Router();
 exports.buyWithTickets = async (req,res,next) => {
     idUtente = req.body.id_utente;
     costo = req.body.costo; //costo ticket;
-
+    idGarage = req.body.id_garage;
     let updateTicket;
     let premio;
-
-    try{ //Verifica credito Tickets
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
-        if(row[0].ticket >= costo){
-            updateTicket = row[0].ticket - costo;
-        }
-        else{
+    
+    try{   //Verifica disponibilità tickets
+        updateTicket = await verificaTickets(idUtente, costo);
+        if(!updateTicket){
             res.status(401).json({
-                message : 'Tickets insufficienti'
+                message: 'Tickets non sufficienti'
             })
         }
     }
     catch(err){
-        console.log(err);
         res.status(401).json({
-            message : err
+            message : 'impossibile verificare i tickets disponibili' + err
         })
     }
-    try{
-        premio = await acquistoPacchetto(idUtente, costo); //acquisto pacchetto e generazione del premio
+
+   
+    try {
+       
+        conn.connect((err) =>{ 
+            if(err) {  
+              console.error("errore di connessione:" + err.stack ); 
+              return;
+            }
+            console.log('connesso come id' + conn.threadId);
+        });
+        
+        conn.beginTransaction(async err => {
+            if (err) {
+                console.log(err);
+                return res.status(422).json({
+                    message: 'Impossibile avviare la procedura (transaction failed)'
+                });
+            }
+
+            premio = await acquistoPacchetto(idUtente, costo, idGarage); //acquisto auto
+
+            conn.query("INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idGarage, premio.id_auto, 1, 0], (err, result) => {
+                if (err) {
+                    conn.rollback((err) => {
+                        console.log("inserimento premio : ", err);
+                    });
+                    return res.status(422).json({
+                        message: 'Errore insert premio'
+                    });
+                }
+
+
+                conn.query('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updateTicket, idUtente], (err, result) => {
+                    if (err) {
+                        conn.rollback((err) => {
+                            console.log("Update portafoglio : ", err);
+                        });
+                        return res.status(422).json({
+                            message: 'Errore update portafoglio'
+                        });
+                    }
+
+
+                    
+                    conn.commit((err) => {
+                        if (err) {
+                            conn.rollback((err) => {
+                                return res.status(422).json({
+                                    message: 'Impossibile effettuare il commit. Acquisto fallita!'
+                                });
+                            });
+                        }
+                        else {
+                            console.log('Transaction Complete.');
+                            console.log("chiudo connessione");
+                            conn.end();
+                            return res.status(201).json({
+                                message : 'Acquisto completato',
+                                newTickets : updateTicket, //Nuovo credito tickets
+                                premio: premio
+                            });
+                        }
+                    });
+                });
+            });
+        });
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile procedere con acquisto'
+            message : err,
         })
-    }
-
-
-    try{ //aggiornamento portafoglio
-        result = await db.execute('UPDATE portafoglio SET ticket = ? WHERE id_utente = ?', [updateTicket, idUtente])
-         
-    }
-    catch(err){
-        res.status(401).json({
-            message : 'impossibile aggiornare il portafoglio',
-            err : err
-        })
-    }
-
-    res.status(201).json({
-        message : 'Acquisto completato',
-        newTickets : updateTicket, //Nuovo credito tickets
-        premio : premio, //Premio appena vinto
-    })
+    } 
 }
 
 
 
 exports.buyWithPoints = async (req,res,next) => {
-    idUtente = req.body.id;
+    idUtente = req.body.id_utente;
     costo = req.body.costo; //costo ticket;
+    idPortafoglio = req.body.id_portafoglio;
+    idGarage = req.body.id_garage;
 
     let updatePoint
     try{ //verifica points
@@ -79,27 +124,80 @@ exports.buyWithPoints = async (req,res,next) => {
         console.log(err);
         return err;
     }
+    
+    try {
+       
+        conn.connect((err) =>{ 
+            if(err) {  
+              console.error("errore di connessione:" + err.stack ); 
+              return;
+            }
+            console.log('connesso come id' + conn.threadId);
+        });
+        
+        conn.beginTransaction(async err => {
+            if (err) {
+                console.log(err);
+                return res.status(422).json({
+                    message: 'Impossibile avviare la procedura di regitrazione (transaction failed)'
+                });
+            }
 
-    try{
-        premio = await acquistoPacchetto(idUtente, costo); //acquisto auto
+            premio = await acquistoPacchetto(idUtente, costo, idGarage); //acquisto auto
+
+            conn.query("INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idGarage, premio.id_auto, 1, 0], (err, result) => {
+                if (err) {
+                    conn.rollback((err) => {
+                        console.log("inserimento premio : ", err);
+                    });
+                    return res.status(422).json({
+                        message: 'Errore insert premio'
+                    });
+                }
+
+
+                conn.query('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updatePoint, idUtente], (err, result) => {
+                    if (err) {
+                        conn.rollback((err) => {
+                            console.log("Update portafoglio : ", err);
+                        });
+                        return res.status(422).json({
+                            message: 'Errore update portafoglio'
+                        });
+                    }
+
+
+                    
+                    conn.commit((err) => {
+                        if (err) {
+                            conn.rollback((err) => {
+                                return res.status(422).json({
+                                    message: 'Impossibile effettuare il commit. Acquisto fallita!'
+                                });
+                            });
+                        }
+                        else {
+                            console.log('Transaction Complete.');
+                            console.log("chiudo connessione");
+                            conn.end();
+                            return res.status(201).json({
+                                message : 'Acquisto completato',
+                                updatePoint : updatePoint,
+                                premio: premio
+                            });
+                        }
+                    });
+                });
+            });
+        });
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile procedere con acquisto'
+            message : err
         })
     }
-
-    try{ //aggiornamento portafoglio
-        const [row, field] = await db.execute('UPDATE portafoglio SET acpoint = ? WHERE idutente = ?', [updatePoint, idUtente])
-    }
-    catch(err){
-        console.log(err);
-        return err;
-    }
-
-    res.status(201).json({
-        message : 'Acquisto completato'
-    })
+         
+  
 }
 
 /**
@@ -107,11 +205,10 @@ exports.buyWithPoints = async (req,res,next) => {
  * @param {*} idUtente 
  * @param {*} costo 
  */
-async function acquistoPacchetto(idUtente, costo){
+async function acquistoPacchetto(idUtente, costo, idGarage){
     let auto = [];
-    let idGarage;
     let autoDisponibili = [];
-    console.log(costo);
+    //console.log(costo);
     try{
         const [rows, field] = await db.execute("SELECT * FROM auto"); //Recupera tutte le auto
         auto = rows;
@@ -142,12 +239,12 @@ async function acquistoPacchetto(idUtente, costo){
 
     const randomElement = autoRandom[Math.floor(Math.random() * autoRandom.length)]; //Random vincita
  
-    try{
+   /*  try{
         const result = await db.execute("INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idGarage, randomElement.id_auto, 1, 0]) //recupera auto nel parcheggio dell'utente
     }
     catch(err){
         return 'Impossibile inserire premio: ' +err;
-    }
+    } */
 
     return randomElement; //Restituisce l'auto vinta!
     
@@ -327,8 +424,8 @@ exports.getShopAuto = async (req,res,next) =>{
 
 exports.buyAuto = async (req,res,next) => {
     let idUtente = req.body.id_utente;
-    let idAuto = req.body.id_auto
-    let idGarage;
+    let idAuto = req.body.id_auto;
+    let idGarage = req.body.id_garage;
     let updatePoint;
     let auto;
     try{ //recupera dati auto da acquistare
@@ -339,21 +436,30 @@ exports.buyAuto = async (req,res,next) => {
         res.status(401).json({
             message : 'impossibile trovare auto'
         })
-    }
+    } 
 
+    //Verifica che l'auto non sia già disponibile per quell'utente
     try{
-        const [row, field] = await db.execute("SELECT * FROM garage WHERE id_utente = ? ", [idUtente]);
-        idGarage = row[0].id_garage;
-    }
+        const [row, field] = await db.execute("SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?", [idAuto, idGarage]);
+        if(row[0]){
+            res.status(401).json({
+                message : 'Auto già presente nel tuo garage.'
+            })
+        }
+    }  
     catch(err){
         res.status(401).json({
-            message : 'impossibile trovare garage'
+            message : err
         })
     }
 
-
-    try{   
-        updatePoint = await verificaPoint(idUtente, auto.costo);
+    try{   //Verifica disponibilità point
+        updatePoint = await verificaPoints(idUtente, auto.costo);
+        if(!updatePoint){
+            res.status(401).json({
+                message: 'AcPoint non sufficienti'
+            })
+        }
     }
     catch(err){
         res.status(401).json({
@@ -361,48 +467,118 @@ exports.buyAuto = async (req,res,next) => {
         })
     }
 
-    console.log(updatePoint)
-
-    if(updatePoint){
-        try{ //aggiornamento portafoglio
-            result = await db.execute('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updatePoint, idUtente]);
-        }
-        catch(err){
-            res.status(401).json({
-                message : 'impossibile aggiornare il portafoglio',
-                err : err
-            })
-        }
-    }
-    else{
-        res.status(401).json({
-            message : 'AcPoint non sufficienti'
-        })
-    }
+    //console.log(updatePoint)
 
     try{
-        result = await db.execute('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?) ', [idGarage, idAuto, 1, 0]);
-        res.status(201).json({
-            message : 'acquisto completato'
-        })
+        
+        conn.connect((err) =>{ 
+            if(err) {  
+            console.error("errore di connessione:" + err.stack ); 
+            return;
+            }
+            console.log('connesso come id' + conn.threadId);
+        });
+        
+        conn.beginTransaction(async err => {
+            if (err) {
+                console.log(err);
+                return res.status(422).json({
+                    message: 'Impossibile avviare la procedura (transaction failed)'
+                });
+            }
+
+        
+
+            conn.query('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?) ', [idGarage, auto.id_auto, 1, 0], (err, result) => {
+                if (err) {
+                    conn.rollback((err) => {
+                        console.log("inserimento auto : ", err);
+                    });
+                    return res.status(422).json({
+                        message: 'Errore insert auto'
+                    });
+                }
+
+
+                conn.query('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updatePoint, idUtente], (err, result) => {
+                    if (err) {
+                        conn.rollback((err) => {
+                            console.log("Update portafoglio : ", err);
+                        });
+                        return res.status(422).json({
+                            message: 'Errore update portafoglio'
+                        });
+                    }
+
+
+                    
+                    conn.commit((err) => {
+                        if (err) {
+                            conn.rollback((err) => {
+                                return res.status(422).json({
+                                    message: 'Impossibile effettuare il commit. Acquisto fallita!'
+                                });
+                            });
+                        }
+                        else {
+                            console.log('Transaction Complete.');
+                            console.log("chiudo connessione");
+                            conn.end();
+                            return res.status(201).json({
+                                message : 'Acquisto completato',
+                                updatePoint : updatePoint,
+                                auto: auto
+                            });
+                        }
+                    });
+                });
+            });
+        });
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile inserire auto in parcheggia'
+            message : err
         })
     }
 
 }
 
 
-
-async function verificaPoint(idutente, costo){
+/**
+ * verifica se i points posseduti sono sufficienti per effettuare l'acquisto di costo "costo"
+ * @param {*} idUtente 
+ * @param {*} costo 
+ */
+async function verificaPoints(idUtente, costo){
     let updatePoint
     try{ //verifica points
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idutente]);
-        if(row[0].ticket >= costo){
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        if(row[0].acpoint >= costo){
             updatePoint = row[0].acpoint - costo;
             return updatePoint;
+        }
+        else{
+            return false;
+        }
+    }
+    catch(err){
+        console.log(err);
+        return err;
+    }
+}
+
+/**
+ *  * verifica se i tickets posseduti sono sufficienti per effettuare l'acquisto di costo "costo"
+ * @param {*} idUtente 
+ * @param {*} costo 
+ */
+async function verificaTickets(idUtente, costo){
+    let updateTickets
+    try{ //verifica points
+        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        if(row[0].ticket >= costo){
+            updateTickets = row[0].ticket - costo;
+            return updateTickets;
         }
         else{
             return false;
