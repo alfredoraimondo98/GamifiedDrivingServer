@@ -15,6 +15,7 @@ router.post('/register', [
 
 router.post('/login', authController.loginApp);
 router.get('/login/me', isAuth, authController.loginMe);
+router.post('/checkEmail', authController.checkEmail);
 
 router.get('/facebook',  passport.authenticate("facebook"));
 router.get('/facebook/callback', passport.authenticate('facebook', { successRedirect: '/auth/successLoginFacebook', failureRedirect: '/auth/errorLogin' }));

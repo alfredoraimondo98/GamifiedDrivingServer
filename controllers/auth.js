@@ -309,20 +309,7 @@ exports.createUtente = async (req, res, next) => {
     let idUt;
 
 
-    try{
-        const [row, field] = await db.execute("SELECT * FROM utente WHERE email = ?", [email]);
-        if(row[0]){
-            res.status(401).json({
-                message : 'email già presente'
-            })
-        }
-    }
-    catch(err){
-        res.status(401).json({
-            message : err
-        })
-    }
-  
+    
 
 
     try {
@@ -473,6 +460,29 @@ exports.createUtente = async (req, res, next) => {
 }
 
 
+exports.checkEmail = async (req, res, next) => {
+    let email = req.body.email;
+    try{
+        const [row, field] = await db.execute("SELECT * FROM utente WHERE email = ?", [email]);
+        if(row[0]){
+            res.status(401).json({
+                message : false
+            })
+        }
+    }
+    catch(err){
+        console.log(err);
+        res.status(401).json({
+            message : false
+        }) 
+    }
+    
+    res.status(401).json({
+        message : true
+    })
+}
+
+
 
     
 /**
@@ -499,6 +509,15 @@ exports.createUtente = async (req, res, next) => {
         tolleranzaMax = 120;    
     }
  }
+
+
+
+
+
+
+
+
+
 
 
    
