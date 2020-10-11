@@ -310,8 +310,8 @@ exports.createUtente = async (req, res, next) => {
 
 
     try{
-        const [row, field] = await db.execute("SELECT * FROM utente WHEER email = ?", [email]);
-        if(!row[0]){
+        const [row, field] = await db.execute("SELECT * FROM utente WHERE email = ?", [email]);
+        if(row[0]){
             res.status(401).json({
                 message : 'email già presente'
             })
@@ -450,7 +450,7 @@ exports.createUtente = async (req, res, next) => {
                                         console.log("chiudo connessione");
                                         conn.end();
                                         return res.status(201).json({
-                                            message: 'registraione completata',
+                                            message: 'Registrazione completata',
                                         });
                                     }
                                 });
