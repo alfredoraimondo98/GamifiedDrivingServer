@@ -309,14 +309,20 @@ exports.createUtente = async (req, res, next) => {
     let idUt;
 
 
-   /*  let auto = [];
-    try{ 
-        const [rows, field] =await db.execute('SELECT * FROM auto');
-        auto = rows;
+    try{
+        const [row, field] = await db.execute("SELECT * FROM utente WHEER email = ?", [email]);
+        if(!row[0]){
+            res.status(401).json({
+                message : 'email già presente'
+            })
+        }
     }
     catch(err){
-        console.log(err);
-    } */
+        res.status(401).json({
+            message : err
+        })
+    }
+  
 
 
     try {
@@ -440,15 +446,11 @@ exports.createUtente = async (req, res, next) => {
                                     }
                                     else {
                                         console.log('Transaction Complete.');
-                                        console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
+                                        //console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
                                         console.log("chiudo connessione");
                                         conn.end();
                                         return res.status(201).json({
                                             message: 'registraione completata',
-                                            idUtente: idInsertUtente,
-                                            idGarage: idInsertGarage,
-                                            idPortafoglio: idInsertPortafoglio,
-                                            tipo_accesso: tipo_accesso
                                         });
                                     }
                                 });
@@ -462,6 +464,9 @@ exports.createUtente = async (req, res, next) => {
     catch (err) {
         console.log("chiudo connessione");
         conn.end();
+        return res.status(401).json({
+            message: err,
+        });
         console.log(err);
     }
    
