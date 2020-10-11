@@ -26,7 +26,14 @@ const corsOptions = {
     }
   }
   
-app.use(cors(corsOptions));
+ // Enable preflight requests for all routes
+app.options('*', cors(corsOptions));
+
+app.get('/cors', cors(corsOptions), (req, res, next) => {
+  res.json({ message: 'This route is CORS-enabled for an allowed origin.' });
+}) 
+
+app.use(cors());
 
 const passport = require("passport")
 
