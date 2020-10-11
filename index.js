@@ -19,7 +19,7 @@ app.use((req,res,next) => {
   res.json({ message: 'This route is CORS-enabled for an allowed origin.' });
 }) 
  */
-app.use(cors());
+//app.use(cors());
 
 const passport = require("passport")
 
