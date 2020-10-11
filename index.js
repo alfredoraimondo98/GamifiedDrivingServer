@@ -7,7 +7,26 @@ app.use(bodyParser.json());
 
 
 const cors = require('cors');
-app.use(cors());
+
+const allowedOrigins = [
+    'capacitor://localhost',
+    'ionic://localhost',
+    'http://localhost',
+    'http://localhost:8100'
+  ];
+
+// Reflect the origin if it's in the allowed list or not defined (cURL, Postman, etc.)
+const corsOptions = {
+    origin: (origin, callback) => {
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origin not allowed by CORS'));
+      }
+    }
+  }
+  
+app.use(cors(corsOptions));
 
 const passport = require("passport")
 
