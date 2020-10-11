@@ -405,7 +405,7 @@ exports.getShopAuto = async (req,res,next) =>{
     let autoIntoShop = auto.filter( (item) => {
         let bool = false;
         autoDisponibili.forEach( (a) => {
-            if(a.idauto === item.id_auto){
+            if(a.id_auto === item.id_auto){
                 bool = true;
             }
         })
