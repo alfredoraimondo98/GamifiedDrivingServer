@@ -182,7 +182,7 @@ exports.loginApp = async (req,res,next) => {
          utenteLogin = row[0];
         if(!row[0]){
             return res.status(401).json({
-                message : 'Email non trovata'
+                message : false
             });
         }
         portafoglio = await getPortafoglioByIdUtente(utenteLogin.id_utente);
@@ -207,7 +207,7 @@ exports.loginApp = async (req,res,next) => {
     catch(err){
         console.log(err);
         return res.status(401).json({
-            message : err
+            message : false
         });
     }
 
@@ -241,12 +241,12 @@ exports.loginApp = async (req,res,next) => {
                 id_portafoglio : portafoglio.id_portafoglio,
                 token : token,
             });
-            console.log(token);
+            //console.log(token);
             }
             else{
-            return res.status(401).json({
-                message : 'password errata'
-            })
+                return res.status(401).json({
+                    message : false
+                })
             }
     }));
 }
