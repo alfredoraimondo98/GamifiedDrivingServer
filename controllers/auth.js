@@ -476,8 +476,8 @@ exports.checkEmail = async (req, res, next) => {
             message : false
         }) 
     }
-    
-    res.status(401).json({
+
+    res.status(201).json({
         message : true
     })
 }
