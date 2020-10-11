@@ -465,14 +465,14 @@ exports.checkEmail = async (req, res, next) => {
     try{
         const [row, field] = await db.execute("SELECT * FROM utente WHERE email = ?", [email]);
         if(row[0]){
-            res.status(401).json({
+            res.status(201).json({
                 message : false
             })
         }
     }
     catch(err){
         console.log(err);
-        res.status(401).json({
+        res.status(201).json({
             message : false
         }) 
     }
