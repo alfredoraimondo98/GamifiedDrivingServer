@@ -8,7 +8,12 @@ app.use(bodyParser.json());
 
 const cors = require('cors');
 
+app.use((req,res,next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
+})
 
 /* app.get('/auth', cors(corsOptions), (req, res, next) => {
   res.json({ message: 'This route is CORS-enabled for an allowed origin.' });
