@@ -3,6 +3,7 @@ const db = require('../utils/database');
 const { validationResult } = require('express-validator');
 const express = require('express');
 const router = express.Router();
+const queries = require('../utils/queries');
 
 /**
  * Recupera dati da visualizzare sulla home del profilo
@@ -64,7 +65,7 @@ async function getPortafoglioByIdUtente(idUtente) {
     console.log("cerco questo ", idUtente);
     let portafoglio;
     try{
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
         if(!row[0]){
             return false;
         }
@@ -100,7 +101,7 @@ exports.getGarage = async (req,res,next) => {
     let idGarage;
     let parcheggio = [];
     try{
-        const [row, fields] = await db.execute('SELECT * FROM garage WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getGarageByIdUtente, [idUtente]);
         idGarage = row[0].idgarage;
     }
     catch(err){
@@ -124,11 +125,7 @@ exports.getGarage = async (req,res,next) => {
  */
 async function getParcheggioByIdGarage(idGarage){
     try{
-        const [rows, field] = await db.execute(`SELECT * 
-                                                FROM gamifieddrivingdb.parcheggia JOIN gamifieddrivingdb.auto 
-                                                ON gamifieddrivingdb.parcheggia.id_auto = gamifieddrivingdb.auto.id_auto 
-                                                WHERE gamifieddrivingdb.parcheggia.id_garage = ?`, [idGarage]
-                                            );
+        const [rows, field] = await db.execute(queries.getParcheggioByIdGarage, [idGarage]);
         parcheggio = rows;
         //console.log(parcheggio);
     }
@@ -171,7 +168,7 @@ exports.getClassificaGenerale = async (req,res,next) => {
                                                 FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
                                                 ON gamifieddrivingdb.utente.id_utente = gamifieddrivingdb.portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
-        `);
+                                                `);
         classifica = rows;
     }
     catch(err){

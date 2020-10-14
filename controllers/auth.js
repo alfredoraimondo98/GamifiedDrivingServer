@@ -10,7 +10,7 @@ const FacebookStrategy = require("passport-facebook").Strategy
 const FB = require('fb');
 const utilsFb = require('../utils/facebook');
 const profiloController = require('./profilo');
-const queriesController = require('./queries');
+const queries = require('../utils/queries')
 
 var user;
 var tipo_accesso;
@@ -38,17 +38,33 @@ async function getUserFacebook() {
               }
                
               let nameDisplay = result.name;
+              nameDisplay += ' We';
+              console.log(" NNN ", nameDisplay)
+               
               let nome = nameDisplay.split(" ")[0];
               let cognome = nameDisplay.split(" ")[1];
+            /*   if(nameDisplay.split(" ")[2] !== ''){
+                  cognome = cognome + " " + nameDisplay.split(" ")[2];
+              } */
+              
       
-              console.log("EMAIL ", result.email);
-            
+              //console.log("EMAIL ", result.email);
+              //Crea array degli amici
+              let friends = [];
+              result.friends.data.forEach( friend => {
+                friend = {
+                    nome : friend.name,
+                    id : friend.id
+                }
+                friends.push(friend);
+              })
+
                user = {
                 nome : nome,
                 cognome : cognome,
                 email : result.email,
                 citta : result.location.name,
-                friends : result.friends,
+                friends : friends, //array amici di fb
                 tipo : 'Standard',
                 id : result.id
               }
@@ -138,7 +154,9 @@ dispatcherLoginWithFb = (req,res,next,userFb) => {
 
  
 
-
+exports.preSuccessFb = (req,res,next)=>{
+    res.redirect ("/successLoginFacebook");
+}
 
 
 
@@ -178,7 +196,7 @@ exports.loginApp = async (req,res,next) => {
     let garage;
     let stileDiGuida;
     try{
-         const [row,field] = await db.execute('SELECT * FROM utente WHERE email = ?', [email]);
+         const [row,field] = await db.execute(queries.getUtenteByEmail, [email]);
          utenteLogin = row[0];
         if(!row[0]){
             return res.status(401).json({
@@ -188,19 +206,19 @@ exports.loginApp = async (req,res,next) => {
         portafoglio = await getPortafoglioByIdUtente(utenteLogin.id_utente);
         if(!portafoglio){
             return res.status(401).json({
-                message : 'portafoglio utente non disponibile'
+                message : 'Portafoglio utente non disponibile'
             });
         }
         garage = await getGarageByIdUtente(utenteLogin.id_utente);
         if(!garage){
             return res.status(401).json({
-                message : 'garage utente non disponibile'
+                message : 'Garage utente non disponibile'
             });
         }
         stileDiGuida = await getStileDiGuidaByIdUtente(utenteLogin.id_utente);
         if(!garage){
             return res.status(401).json({
-                message : 'stilediguida utente non disponibile'
+                message : 'Stile di guida utente non disponibile'
             });
         }
     }
@@ -241,6 +259,7 @@ exports.loginApp = async (req,res,next) => {
                 id_portafoglio : portafoglio.id_portafoglio,
                 token : token,
             });
+         
             //console.log(token);
             }
             else{
@@ -281,7 +300,7 @@ exports.createUtente = async (req, res, next) => {
         cognome = user.cognome;
         email = user.email;
         password = 'passwordforfb'; //generazione password per gli account fb*****
-        citta = user.citta;
+        citta = user.citta.toUpperCase();
         tipo = user.tipo;
         tipo_accesso = 'facebook';
     }
@@ -299,7 +318,7 @@ exports.createUtente = async (req, res, next) => {
         cognome = req.body.cognome;
         email = req.body.email;
         password = req.body.password;
-        citta = req.body.citta;
+        citta = (req.body.citta.toUpperCase());
         tipo = req.body.tipo;
         tipo_accesso = 'app';
     }
@@ -314,13 +333,13 @@ exports.createUtente = async (req, res, next) => {
 
     try {
        
-        conn.connect((err) =>{ 
+      /*   conn.connect((err) =>{ 
             if(err) {  
               console.error("errore di connessione:" + err.stack ); 
               return;
             }
             console.log('connesso come id' + conn.threadId);
-        });
+        }); */
         conn.beginTransaction(err => {
             if (err) {
                 console.log(err);
@@ -331,7 +350,7 @@ exports.createUtente = async (req, res, next) => {
 
 
             
-            conn.query('INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso) values (?,?,?,?,?,?)', [nome, cognome, email, hashedPassword, citta, tipo_accesso], (err, result) => {
+            conn.query(queries.createUtente, [nome, cognome, email, hashedPassword, citta, tipo_accesso], (err, result) => {
                 if (err) {
 
                     conn.rollback((err) => {
@@ -345,7 +364,7 @@ exports.createUtente = async (req, res, next) => {
                 var idInsertUtente = result.insertId;
 
 
-                conn.query('INSERT INTO garage (id_utente) values (?)', [idInsertUtente], (err, result) => {
+                conn.query(queries.createGarage, [idInsertUtente], (err, result) => {
                     if (err) {
                         conn.rollback((err) => {
 
@@ -377,7 +396,7 @@ exports.createUtente = async (req, res, next) => {
                 
                     }) */
 
-                    conn.query('INSERT INTO portafoglio (id_utente) values (?)', [idInsertUtente], (err, result) => {
+                    conn.query(queries.createPortafoglio, [idInsertUtente], (err, result) => {
                         if (err) {
                             conn.rollback((err) => {
 
@@ -394,7 +413,7 @@ exports.createUtente = async (req, res, next) => {
 
                         defineStileGuida(tipo);
 
-                        conn.query('INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)', [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
+                        conn.query(queries.createStileDiGuida, [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
                             if (err) {
                                 conn.rollback((err) => {
 
@@ -410,7 +429,7 @@ exports.createUtente = async (req, res, next) => {
                             var idInsertStileGuida = result.insertId;
                        
 
-                            conn.query('INSERT INTO statistichegamification (id_utente, id_app, livello) values (?,?,?)', [idInsertUtente, 1, 0], (err, result) => {
+                            conn.query(queries.createStatisticheGamification, [idInsertUtente, 1, 0], (err, result) => {
                                 if (err) {
                                     conn.rollback((err) => {
                                         console.log("error iscrizione a gamifiedDriving", err);
@@ -434,11 +453,14 @@ exports.createUtente = async (req, res, next) => {
                                     else {
                                         console.log('Transaction Complete.');
                                         //console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
-                                        console.log("chiudo connessione");
-                                        conn.end();
+                                       /*  console.log("chiudo connessione");
+                                        conn.end(); */
+                                       /*  if(tipo_accesso === 'facebook'){
+                                            res.redirect('http://localhost:4200/sd/menu');
+                                        } */
                                         return res.status(201).json({
                                             message: 'Registrazione completata',
-                                        });
+                                        }); 
                                     }
                                 });
                             }); 
@@ -463,7 +485,7 @@ exports.createUtente = async (req, res, next) => {
 exports.checkEmail = async (req, res, next) => {
     let email = req.body.email;
     try{
-        const [row, field] = await db.execute("SELECT * FROM utente WHERE email = ?", [email]);
+        const [row, field] = await db.execute(queries.getUtenteByEmail, [email]);
         if(row[0]){
             res.status(201).json({
                 message : false
@@ -528,7 +550,7 @@ exports.checkEmail = async (req, res, next) => {
 async function getUtente(idUtente) {
     let utente;
     try{
-        const [row, fields] = await db.execute('SELECT * FROM utente WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getUtenteById, [idUtente]);
         if(!row[0]){
             return false;
         }
@@ -548,7 +570,7 @@ async function getPortafoglioByIdUtente(idUtente) {
     console.log("cerco questo ", idUtente);
     let portafoglio;
     try{
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
         if(!row[0]){
             return false;
         }
@@ -567,7 +589,7 @@ async function getPortafoglioByIdUtente(idUtente) {
 async function getGarageByIdUtente(idUtente){
     let garage;
     try{
-        const [row, fields] = await db.execute('SELECT * FROM garage WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getGarageByIdUtente, [idUtente]);
         if(!row[0]){
             return false;
         }
@@ -586,7 +608,7 @@ async function getGarageByIdUtente(idUtente){
 async function getStileDiGuidaByIdUtente(idUtente){
     let stileDiGuida;
     try{
-        const [row, fields] = await db.execute('SELECT * FROM stilediguida WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getStileDiGuidaByIdUtente, [idUtente]);
         if(!row[0]){
             return false;
         }

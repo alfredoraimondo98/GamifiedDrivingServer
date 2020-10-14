@@ -3,7 +3,9 @@ const db = require('../utils/database');
 const { validationResult } = require('express-validator');
 const express = require('express');
 const router = express.Router();
+const queries = require('../utils/queries')
 
+queries.SELECT
 
 exports.buyWithTickets = async (req,res,next) => {
     idUtente = req.body.id_utente;
@@ -15,7 +17,7 @@ exports.buyWithTickets = async (req,res,next) => {
     try{   //Verifica disponibilità tickets
         updateTicket = await verificaTickets(idUtente, costo);
         if(!updateTicket){
-            res.status(401).json({
+            return res.status(401).json({
                 message: 'Tickets non sufficienti'
             })
         }
@@ -29,13 +31,13 @@ exports.buyWithTickets = async (req,res,next) => {
    
     try {
        
-        conn.connect((err) =>{ 
+      /*   conn.connect((err) =>{ 
             if(err) {  
               console.error("errore di connessione:" + err.stack ); 
               return;
             }
             console.log('connesso come id' + conn.threadId);
-        });
+        }); */
         
         conn.beginTransaction(async err => {
             if (err) {
@@ -47,7 +49,7 @@ exports.buyWithTickets = async (req,res,next) => {
 
             premio = await acquistoPacchetto(idUtente, costo, idGarage); //acquisto auto
 
-            conn.query("INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idGarage, premio.id_auto, 1, 0], (err, result) => {
+            conn.query(queries.insertIntoParcheggio, [idGarage, premio.id_auto, 1, 0], (err, result) => {
                 if (err) {
                     conn.rollback((err) => {
                         console.log("inserimento premio : ", err);
@@ -58,7 +60,7 @@ exports.buyWithTickets = async (req,res,next) => {
                 }
 
 
-                conn.query('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updateTicket, idUtente], (err, result) => {
+                conn.query(queries.updateTicketPortafoglioByIdUtente, [updateTicket, idUtente], (err, result) => {
                     if (err) {
                         conn.rollback((err) => {
                             console.log("Update portafoglio : ", err);
@@ -80,8 +82,8 @@ exports.buyWithTickets = async (req,res,next) => {
                         }
                         else {
                             console.log('Transaction Complete.');
-                            console.log("chiudo connessione");
-                            conn.end();
+                            /* console.log("chiudo connessione");
+                            conn.end(); */
                             return res.status(201).json({
                                 message : 'Acquisto completato',
                                 newTickets : updateTicket, //Nuovo credito tickets
@@ -110,7 +112,7 @@ exports.buyWithPoints = async (req,res,next) => {
 
     let updatePoint
     try{ //verifica points
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
         if(row[0].ticket >= costo){
             updatePoint = row[0].acpoint - costo;
         }
@@ -145,7 +147,7 @@ exports.buyWithPoints = async (req,res,next) => {
 
             premio = await acquistoPacchetto(idUtente, costo, idGarage); //acquisto auto
 
-            conn.query("INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)", [idGarage, premio.id_auto, 1, 0], (err, result) => {
+            conn.query(queries.insertIntoParcheggio, [idGarage, premio.id_auto, 1, 0], (err, result) => {
                 if (err) {
                     conn.rollback((err) => {
                         console.log("inserimento premio : ", err);
@@ -156,7 +158,7 @@ exports.buyWithPoints = async (req,res,next) => {
                 }
 
 
-                conn.query('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updatePoint, idUtente], (err, result) => {
+                conn.query(queries.updatePointPortafoglioByIdUtente, [updatePoint, idUtente], (err, result) => {
                     if (err) {
                         conn.rollback((err) => {
                             console.log("Update portafoglio : ", err);
@@ -210,7 +212,7 @@ async function acquistoPacchetto(idUtente, costo, idGarage){
     let autoDisponibili = [];
     //console.log(costo);
     try{
-        const [rows, field] = await db.execute("SELECT * FROM auto"); //Recupera tutte le auto
+        const [rows, field] = await db.execute(queries.getAllAuto); //Recupera tutte le auto
         auto = rows;
     }
     catch(err){
@@ -218,7 +220,7 @@ async function acquistoPacchetto(idUtente, costo, idGarage){
     }
 
     try{
-        const [row, field] = await db.execute("SELECT * FROM garage WHERE id_utente = ? ", [idUtente]) //recupera id garage dell'utente
+        const [row, field] = await db.execute(queries.getGarageByIdUtente, [idUtente]) //recupera id garage dell'utente
         idGarage = row[0].id_garage
     }
     catch(err){
@@ -226,7 +228,7 @@ async function acquistoPacchetto(idUtente, costo, idGarage){
     }
 
     try{
-        const [rows, field] = await db.execute("SELECT * FROM parcheggia WHERE id_garage = ?", [idGarage]) //recupera auto nel parcheggio dell'utente
+        const [rows, field] = await db.execute(queries.getParcheggioByIdGarage, [idGarage]) //recupera auto nel parcheggio dell'utente
         autoDisponibili = rows;
     }
     catch(err){
@@ -368,7 +370,7 @@ exports.getShopAuto = async (req,res,next) =>{
     let autoDisponibili = []; //Auto disponibili per l'utente
     
     try{
-        const [rows, field] = await db.execute("SELECT * FROM auto"); //Recupera tutte le auto
+        const [rows, field] = await db.execute(queries.getAllAuto); //Recupera tutte le auto
         auto = rows;
     }
     catch(err){
@@ -379,7 +381,7 @@ exports.getShopAuto = async (req,res,next) =>{
     }
 
     try{
-        const [row, field] = await db.execute("SELECT * FROM garage WHERE id_utente = ? ", [idUtente]) //recupera id garage dell'utente
+        const [row, field] = await db.execute(queries.getGarageByIdUtente, [idUtente]) //recupera id garage dell'utente
         idGarage = row[0].id_garage
     }
     catch(err){
@@ -390,7 +392,7 @@ exports.getShopAuto = async (req,res,next) =>{
     }
 
     try{
-        const [rows, field] = await db.execute("SELECT * FROM parcheggia WHERE id_garage = ?", [idGarage]) //recupera auto nel parcheggio dell'utente
+        const [rows, field] = await db.execute(queries.getParcheggioByIdGarage, [idGarage]) //recupera auto nel parcheggio dell'utente
         autoDisponibili = rows;
     }
     catch(err){
@@ -428,7 +430,7 @@ exports.buyAuto = async (req,res,next) => {
     let updatePoint;
     let auto;
     try{ //recupera dati auto da acquistare
-        const [row, field] = await db.execute("SELECT * FROM auto WHERE id_auto = ? ", [idAuto]);
+        const [row, field] = await db.execute(queries.getAutoById, [idAuto]);
         auto = row[0];
     }
     catch(err){
@@ -439,7 +441,7 @@ exports.buyAuto = async (req,res,next) => {
 
     //Verifica che l'auto non sia già disponibile per quell'utente
     try{
-        const [row, field] = await db.execute("SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?", [idAuto, idGarage]);
+        const [row, field] = await db.execute(queries.getAutoByIdAndByIdGarage, [idAuto, idGarage]);
         if(row[0]){
             res.status(401).json({
                 message : 'Auto già presente nel tuo garage.'
@@ -455,7 +457,7 @@ exports.buyAuto = async (req,res,next) => {
     try{   //Verifica disponibilità point
         updatePoint = await verificaPoints(idUtente, auto.costo);
         if(!updatePoint){
-            res.status(401).json({
+            return res.status(401).json({
                 message: 'AcPoint non sufficienti'
             })
         }
@@ -470,41 +472,41 @@ exports.buyAuto = async (req,res,next) => {
 
     try{
         
-        conn.connect((err) =>{ 
+       /*  conn.connect((err) =>{ 
             if(err) {  
             console.error("errore di connessione:" + err.stack ); 
             return;
             }
             console.log('connesso come id' + conn.threadId);
         });
-        
+         */
         conn.beginTransaction(async err => {
             if (err) {
                 console.log(err);
-                return res.status(422).json({
+                res.status(422).json({
                     message: 'Impossibile avviare la procedura (transaction failed)'
                 });
             }
 
         
 
-            conn.query('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?) ', [idGarage, auto.id_auto, 1, 0], (err, result) => {
+            conn.query(queries.insertIntoParcheggio, [idGarage, auto.id_auto, 1, 0], (err, result) => {
                 if (err) {
                     conn.rollback((err) => {
                         console.log("inserimento auto : ", err);
                     });
-                    return res.status(422).json({
+                    res.status(422).json({
                         message: 'Errore insert auto'
                     });
                 }
 
 
-                conn.query('UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?', [updatePoint, idUtente], (err, result) => {
+                conn.query(queries.updatePointPortafoglioByIdUtente, [updatePoint, idUtente], (err, result) => {
                     if (err) {
                         conn.rollback((err) => {
                             console.log("Update portafoglio : ", err);
                         });
-                        return res.status(422).json({
+                        res.status(422).json({
                             message: 'Errore update portafoglio'
                         });
                     }
@@ -514,16 +516,16 @@ exports.buyAuto = async (req,res,next) => {
                     conn.commit((err) => {
                         if (err) {
                             conn.rollback((err) => {
-                                return res.status(422).json({
+                                res.status(422).json({
                                     message: 'Impossibile effettuare il commit. Acquisto fallita!'
                                 });
                             });
                         }
                         else {
                             console.log('Transaction Complete.');
-                            console.log("chiudo connessione");
-                            conn.end();
-                            return res.status(201).json({
+                            //console.log("chiudo connessione");
+                           // conn.end();
+                            res.status(201).json({
                                 message : 'Acquisto completato',
                                 updatePoint : updatePoint,
                                 auto: auto
@@ -551,7 +553,7 @@ exports.buyAuto = async (req,res,next) => {
 async function verificaPoints(idUtente, costo){
     let updatePoint
     try{ //verifica points
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
         if(row[0].acpoint >= costo){
             updatePoint = row[0].acpoint - costo;
             return updatePoint;
@@ -574,7 +576,7 @@ async function verificaPoints(idUtente, costo){
 async function verificaTickets(idUtente, costo){
     let updateTickets
     try{ //verifica points
-        const [row, fields] = await db.execute('SELECT * FROM portafoglio WHERE id_utente = ?', [idUtente]);
+        const [row, fields] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
         if(row[0].ticket >= costo){
             updateTickets = row[0].ticket - costo;
             return updateTickets;
