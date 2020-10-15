@@ -260,7 +260,7 @@ async function acquistoPacchetto(idUtente, costo, idGarage){
  * @param {*} autoDisponibili 
  */
 function dispatcherPacchetto(costo, auto, autoDisponibili){
-    if(costo === '20'){ //pacchetto bronzo
+    if(costo == +'20'){ //pacchetto bronzo
         console.log("in")
         let autoRandom = auto.filter( (item) => {
             let bool = false;
@@ -284,7 +284,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         
         return autoRandom;
     }
-    if(costo === '50'){ //pacchetto argento
+    if(costo == +'50'){ //pacchetto argento
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {
@@ -306,7 +306,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         })
         return autoRandom;
     }
-    if(costo === '100'){ //pacchetto oro
+    if(costo == +'100'){ //pacchetto oro
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {
@@ -328,7 +328,7 @@ function dispatcherPacchetto(costo, auto, autoDisponibili){
         })
         return autoRandom;
     }
-    if(costo === '180'){ //pacchetto damascus
+    if(costo == +'180'){ //pacchetto damascus
         let autoRandom = auto.filter( (item) => {
             let bool = false;
             autoDisponibili.forEach( (a) => {

@@ -44,21 +44,13 @@ exports.getPosizione = (req,res,next) => {
                 }
             }
 
-            let result = {
-                hyghway : highway,
-                maxspeed : maxspeed,
-                name : name,
-            }
-
-            return result;
-            
-           /*  res.status(201).json({
+            res.status(201).json({
                hyghway : highway,
                maxspeed : maxspeed,
                name : name,
              // all: body,
              // dati:  body.elements[0].tags
-            }) */
+            })
         }
         else{
             res.status(401).json({

@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-var ws = require('ws');
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());  
@@ -27,7 +26,6 @@ const passport = require("passport")
 app.use(passport.initialize())
 app.use(passport.session()) // acts as a middleware to alter the req object and change the user value in the request session
 
-const sessioneController = require('./controllers/sessione');
 
 const authRoutes = require('./routes/auth');
 const dataRoutes = require('./routes/data');
@@ -43,25 +41,7 @@ app.use('/shop', shopRoutes);
 app.use('/shop', drivepassRoutes);
 app.use('/sessione', sessioneRoutes);
 
-
-//Web Socket
-var WebSocketServer = ws.Server;
-ws = new WebSocketServer({port : 40999});
-
-ws.on('connection', function(ws){
-
-  setInterval( () =>{ 
-    let result = sessioneController.getPosizione();
-    const message = {
-      result : result,
-      'type' : 'getPosition'
-    };
-    ws.send(JSON.stringify(message))
-
-  },3000)
-  
-})
-
+ 
 
 
 
