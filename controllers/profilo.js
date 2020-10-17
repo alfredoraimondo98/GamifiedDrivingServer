@@ -185,7 +185,6 @@ exports.getClassificaGlobale = async (req,res,next) => {
     }
 
     res.status(201).json({
-        message : 'classifica generale',
         classifica : classifica
     })
 }
@@ -196,7 +195,7 @@ exports.getClassificaGlobale = async (req,res,next) => {
  * @param {*} res 
  * @param {*} next 
  */
-exports.getClassificaLocation = async (req,res,next) => {
+exports.getClassificaLocale = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let utente;
     let classifica;
@@ -227,7 +226,6 @@ exports.getClassificaLocation = async (req,res,next) => {
     }
 
     res.status(201).json({
-        message : 'classifica generale',
         classifica : classifica
     })
 }
