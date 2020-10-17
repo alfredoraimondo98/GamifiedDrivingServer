@@ -48,6 +48,7 @@ exports.buyWithTickets = async (req,res,next) => {
             }
 
             premio = await acquistoPacchetto(idUtente, costo, idGarage); //acquisto auto
+            premio.rarita = premio.rarita.toLowerCase();
 
             conn.query(queries.insertIntoParcheggio, [idGarage, premio.id_auto, 1, 0], (err, result) => {
                 if (err) {
@@ -146,6 +147,7 @@ exports.buyWithPoints = async (req,res,next) => {
             }
 
             premio = await acquistoPacchetto(idUtente, costo, idGarage); //acquisto auto
+            premio.rarita = premio.rarita.toLowerCase();
 
             conn.query(queries.insertIntoParcheggio, [idGarage, premio.id_auto, 1, 0], (err, result) => {
                 if (err) {
@@ -439,6 +441,7 @@ exports.buyAuto = async (req,res,next) => {
         })
     } 
 
+    auto.rarita = auto.rarita.toLowerCase();
     //Verifica che l'auto non sia già disponibile per quell'utente
     try{
         const [row, field] = await db.execute(queries.getAutoByIdAndByIdGarage, [idAuto, idGarage]);

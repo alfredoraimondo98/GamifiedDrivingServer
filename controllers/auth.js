@@ -39,7 +39,7 @@ async function getUserFacebook() {
                
               let nameDisplay = result.name;
               nameDisplay += ' We';
-              console.log(" NNN ", nameDisplay)
+             // console.log(" NNN ", nameDisplay)
                
               let nome = nameDisplay.split(" ")[0];
               let cognome = nameDisplay.split(" ")[1];
@@ -104,12 +104,12 @@ exports.successFb = async (req, res, next) => {
   
    var userFb;
    try{
-    const [row, fields] = await db.execute('SELECT * FROM utente WHERE email = ?', [utenteFacebook.email]);
+    const [row, fields] = await db.execute(queries.getUtenteByEmail, [utenteFacebook.email]);
     //.then( ([row,field]) =>{
         if(row[0]) { //se esiste
             userFb = row[0]; // lo salviamo in ut
             console.log(row[0]) 
-            console.log(userFb.password);
+            //console.log(userFb.password);
         }
         else{
             userFb = null; //se l'utente non è stato trovato, allora dobbiamo inserirlo
@@ -120,7 +120,7 @@ exports.successFb = async (req, res, next) => {
     } 
 
     // console.log("UserFb", userFb);
-    // console.log("User", user);
+    //console.log("User", utenteFacebook.friends);
     
      dispatcherLoginWithFb(req,res,next,userFb);
  
@@ -171,7 +171,7 @@ exports.loginApp = async (req,res,next) => {
     let email;
     let password;
     if(tipo_accesso === 'facebook'){
-        console.log("UUU",user);
+        console.log("Login user fb",user);
         email = user.email;
         password = 'passwordforfb';
     }
@@ -257,6 +257,7 @@ exports.loginApp = async (req,res,next) => {
                 punti_drivepass : portafoglio.punti_drivepass,
                 id_garage : garage.id_garage,
                 id_portafoglio : portafoglio.id_portafoglio,
+                friends : user.friends,
                 token : token,
             });
          
@@ -292,6 +293,7 @@ exports.createUtente = async (req, res, next) => {
     let email;
     let citta;
     let tipo;
+    let idFacebook;
     //console.log("createUtente ", user);
     //Verifica se si sta effettuando l'accesso con fb o si sta registrando tramite app.
     if (tipo_accesso === 'facebook') { //Si sta registrando per la prima volta e sta accedendo con facebook
@@ -303,6 +305,7 @@ exports.createUtente = async (req, res, next) => {
         citta = user.citta.toUpperCase();
         tipo = user.tipo;
         tipo_accesso = 'facebook';
+        idFacebook = user.id;
     }
     else { //si sta registrando tramite form app
         const errors = validationResult(req);
@@ -321,6 +324,7 @@ exports.createUtente = async (req, res, next) => {
         citta = (req.body.citta.toUpperCase());
         tipo = req.body.tipo;
         tipo_accesso = 'app';
+        idFacebook = 0;
     }
 
 
@@ -350,7 +354,7 @@ exports.createUtente = async (req, res, next) => {
 
 
             
-            conn.query(queries.createUtente, [nome, cognome, email, hashedPassword, citta, tipo_accesso], (err, result) => {
+            conn.query(queries.createUtente, [nome, cognome, email, hashedPassword, citta, tipo_accesso, idFacebook], (err, result) => {
                 if (err) {
 
                     conn.rollback((err) => {

@@ -1,5 +1,6 @@
 module.exports = {
     getUtenteByEmail: "SELECT * FROM utente WHERE email = ?",
+    getUtenteByIdFacebook: "SELECT * FROM utente WHERE id_facebook = ?",
     getUtenteById: "SELECT * FROM utente WHERE id_utente = ?",
     
     getPortafoglioByIdUtente: "SELECT * FROM portafoglio WHERE id_utente = ?",
@@ -18,7 +19,7 @@ module.exports = {
     getAutoById: "SELECT * FROM auto WHERE id_auto = ? ",
     getAutoByIdAndByIdGarage: "SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?",
 
-    createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso) values (?,?,?,?,?,?)",
+    createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createGarage: "INSERT INTO garage (id_utente) values (?)",
     createPortafoglio: "INSERT INTO portafoglio (id_utente) values (?)",
     createStileDiGuida: "INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)",

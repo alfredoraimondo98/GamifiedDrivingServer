@@ -221,3 +221,36 @@ exports.getClassificaLocation = async (req,res,next) => {
 }
 
 
+exports.getAmici = async (req,res,next) => {
+    let friends = req.body.friends;
+    var friendsUtente = [];
+    console.log(friends);
+    var amici = [];
+    var amico;
+    var p;
+    var promisesArray = [];
+
+    await friends.forEach( async (userFriend) => {
+       p = db.execute(queries.getUtenteByIdFacebook, [userFriend]);
+       promisesArray.push(p);   
+    })
+
+  
+    console.log(promisesArray)
+    const result = await Promise.all(promisesArray);
+
+    result.forEach( friend => {
+        console.log("QQ",friend[0][0]);
+        friendsUtente.push(friend[0][0]);
+    })
+   
+    console.log("Amici ", friendsUtente)
+     
+  
+     
+     
+   
+    res.status(201).json({
+        friends : friends
+    })
+}
