@@ -170,10 +170,12 @@ exports.loginApp = async (req,res,next) => {
     console.log("LOGIN");
     let email;
     let password;
+    let friends = [];
     if(tipo_accesso === 'facebook'){
         console.log("Login user fb",user);
         email = user.email;
         password = 'passwordforfb';
+        friends = user.friends;
     }
     else{
         const errors = validationResult(req);
@@ -257,7 +259,7 @@ exports.loginApp = async (req,res,next) => {
                 punti_drivepass : portafoglio.punti_drivepass,
                 id_garage : garage.id_garage,
                 id_portafoglio : portafoglio.id_portafoglio,
-                friends : user.friends,
+                friends : friends,
                 token : token,
             });
          
@@ -305,7 +307,7 @@ exports.createUtente = async (req, res, next) => {
         citta = user.citta.toUpperCase();
         tipo = user.tipo;
         tipo_accesso = 'facebook';
-        idFacebook = user.id;
+        idFacebook = user.id; //user.id -> user id facebook.
     }
     else { //si sta registrando tramite form app
         const errors = validationResult(req);
@@ -324,15 +326,12 @@ exports.createUtente = async (req, res, next) => {
         citta = (req.body.citta.toUpperCase());
         tipo = req.body.tipo;
         tipo_accesso = 'app';
-        idFacebook = 0;
+        idFacebook = -1;
     }
 
 
     var hashedPassword = await bcrypt.hashSync(password, 12); //bcrypt password
     let idUt;
-
-
-    
 
 
     try {

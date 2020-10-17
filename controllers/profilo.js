@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries');
+const { promise } = require('../utils/connection');
 
 /**
  * Recupera dati da visualizzare sulla home del profilo
@@ -161,7 +162,13 @@ async function setAutoPredefinita(idGarage, idAuto){
 }
 
 
-exports.getClassificaGenerale = async (req,res,next) => {
+/**
+ * Classifica globale
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.getClassificaGlobale = async (req,res,next) => {
     let classifica;
     try{
         const [rows, field] = await db.execute(`SELECT * 
@@ -183,13 +190,18 @@ exports.getClassificaGenerale = async (req,res,next) => {
     })
 }
 
-
+/**
+ * Classifica città
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 exports.getClassificaLocation = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let utente;
     let classifica;
      try{
-        const [row, field] = await db.execute("SELECT * FROM utente WHERE id_utente = ?", [idUtente]);
+        const [row, field] = await db.execute(queries.getUtenteById, [idUtente]);
         utente = row[0];
     }   
     catch(err){
@@ -221,36 +233,95 @@ exports.getClassificaLocation = async (req,res,next) => {
 }
 
 
-exports.getAmici = async (req,res,next) => {
+/**
+ * Recupera classifica amici fb
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.getClassificaFacebook = async (req,res,next) => {
     let friends = req.body.friends;
-    var friendsUtente = [];
-    console.log(friends);
-    var amici = [];
-    var amico;
+    let myId = req.body.id_utente;
+    var amici = []; //Array degli amici
+
     var p;
     var promisesArray = [];
+    var promisesClassifica = [];
+
+    console.log(friends);
+
+    //Recupera id facebook myutente
+    const [row, field] = await db.execute(queries.getUtenteById, [myId]);
+    friends.push(row[0].id_facebook);
+
 
     await friends.forEach( async (userFriend) => {
        p = db.execute(queries.getUtenteByIdFacebook, [userFriend]);
        promisesArray.push(p);   
     })
-
-  
-    console.log(promisesArray)
     const result = await Promise.all(promisesArray);
 
-    result.forEach( friend => {
+
+    result.forEach( async (friend) => {
+        var promise = new Promise( async function(resolve, reject) {
         console.log("QQ",friend[0][0]);
-        friendsUtente.push(friend[0][0]);
-    })
-   
-    console.log("Amici ", friendsUtente)
-     
-  
-     
-     
-   
+       // friendsUtente.push(friend[0][0]);
+
+
+        let portafoglio = await db.execute(queries.getPortafoglioByIdUtente, [friend[0][0].id_utente]);
+        if(!portafoglio){
+            return res.status(401).json({
+                message : 'Portafoglio utente non disponibile'
+            });
+        }
+        let stileDiGuida = await db.execute(queries.getStileDiGuidaByIdUtente, [friend[0][0].id_utente]);
+        if(!stileDiGuida){
+            return res.status(401).json({
+                message : 'Stile di guida utente non disponibile'
+            });
+        }
+
+        let amico = {
+            id_utente : friend[0][0].id_utente,
+            nome : friend[0][0].nome,
+            cognome : friend[0][0].cognome,
+            email : friend[0][0].email,
+            citta : friend[0][0].citta,
+            tipo_accesso : friend[0][0].tipo_accesso,
+            tipo_utente : stileDiGuida[0][0].tipo,
+            livello : portafoglio[0][0].livello,
+            ac_point : portafoglio[0][0].acpoint,
+            ticket : portafoglio[0][0].ticket,
+            punti_drivepass : portafoglio[0][0].punti_drivepass,
+            id_portafoglio : portafoglio[0][0].id_portafoglio,
+        }
+
+        //console.log("AMICO ", amico);
+        amici.push(amico);
+        //console.log("AMICI ARRAY iterazione", amici);
+        resolve(amici);
+        
+        return promise;
+        })
+
+        promisesClassifica.push(promise);
+        
+    });
+
+    
+    const resultClassifica = await Promise.all(promisesClassifica);
+    
+    //Ordinamento classifica (punti_drivepass)
+    amici.sort(function(a, b) {
+        var puntiA = a.punti_drivepass;
+        var puntiB = b.punti_drivepass;
+        // Compare the 2 dates
+        if (puntiA > puntiB) return -1;
+        if (puntiA < puntiB) return 1;
+        return 0;
+    });
+
     res.status(201).json({
-        friends : friends
+        friends : amici
     })
 }

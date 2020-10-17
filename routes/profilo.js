@@ -8,7 +8,7 @@ router.post('/getProfilo', profiloController.getProfilo);
 
 router.post('/garage/getGarage', profiloController.getGarage);
 
-router.get('/classifica/getClassificaGenerale', profiloController.getClassificaGenerale);
+router.get('/classifica/getClassificaGlobale', profiloController.getClassificaGlobale);
 router.post('/classifica/getClassificaByLocation', profiloController.getClassificaLocation);
-router.post('/classifica/getAmici', profiloController.getAmici);
+router.post('/classifica/getClassificaFacebook', profiloController.getClassificaFacebook);
 module.exports = router;
