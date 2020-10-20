@@ -23,12 +23,10 @@ exports.getDrivepass = async (req,res,next) => {
     }
 
 
-
     var promiseDP = [];
  
 
     dp.forEach( async (item) => {
-
         var promise = new Promise( async function(resolve, reject) {
             if(item.tipo_premio === 'auto'){
                 let auto;
@@ -48,10 +46,12 @@ exports.getDrivepass = async (req,res,next) => {
                     livello : item.livello,
                     premio : item.premio,
                     tipo_premio : item.tipo_premio,
-                    nome : auto.nome,
-                    rarita : auto.rarita,
-                    img : auto.img,
-                    colore : auto.colore
+                    auto : {
+                        nome : auto.nome,
+                        rarita : auto.rarita,
+                        img : auto.img,
+                        colore : auto.colore
+                    }
                 }
                 drivePass.push(premioAuto);   
             }
@@ -74,8 +74,10 @@ exports.getDrivepass = async (req,res,next) => {
                     livello : item.livello,
                     premio : item.premio,
                     tipo_premio : item.tipo_premio,
-                    nome : avatar.nome,
-                    img : avatar.img,
+                    avatar : {
+                        nome : avatar.nome,
+                        img : avatar.img,
+                    }
                 }
 
                 drivePass.push(premioAvatar); 
