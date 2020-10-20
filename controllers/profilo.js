@@ -313,13 +313,12 @@ exports.getClassificaFacebook = async (req,res,next) => {
     amici.sort(function(a, b) {
         var puntiA = a.punti_drivepass;
         var puntiB = b.punti_drivepass;
-        // Compare the 2 dates
         if (puntiA > puntiB) return -1;
         if (puntiA < puntiB) return 1;
         return 0;
     });
 
     res.status(201).json({
-        friends : amici
+        classifica : amici
     })
 }

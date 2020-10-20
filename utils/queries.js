@@ -15,9 +15,15 @@ module.exports = {
                                 WHERE gamifieddrivingdb.parcheggia.id_garage = ?`,
 
 
+    getDrivePassByStagione: 'SELECT * FROM drivepass WHERE stagione = ?',
+
     getAllAuto: "SELECT * FROM auto",
     getAutoById: "SELECT * FROM auto WHERE id_auto = ? ",
     getAutoByIdAndByIdGarage: "SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?",
+
+
+    getAllAvatar: "SELECT * FROM avatar",
+    getAvatarById: "SELECT * FROM avatar WHERE id_avatar = ? ",
 
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createGarage: "INSERT INTO garage (id_utente) values (?)",
