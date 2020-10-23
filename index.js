@@ -38,7 +38,7 @@ app.use('/auth', authRoutes);
 app.use('/data', dataRoutes);
 app.use('/profilo', profiloRoutes);
 app.use('/shop', shopRoutes);
-app.use('/shop', drivepassRoutes);
+app.use('/drivepass', drivepassRoutes);
 app.use('/sessione', sessioneRoutes);
 
  
