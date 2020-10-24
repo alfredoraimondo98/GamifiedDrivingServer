@@ -17,8 +17,8 @@ var lonA = 15.20591;
  */
 function getMySpeed(latA, lonA, latB, lonB){
     let distance;
-    const R = 6371;
-    const pi=3.1415926535;
+    const R = 6371; //raggio terrestre
+    const pi = 3.1415926535;
     const time = 20; //Tempo di ricalcolo 
 
     //Conversione coordinate in radianti
@@ -59,12 +59,13 @@ exports.getPosizione = (req,res,next) => {
     var around = '50.0' //precisione di calcolo della posizione (es: 50 metri vicino alle coordinate)
    
     console.log(lat, lon);
-
+    var speed;
 //Test velocità
    
     var latB = 40.74019;
     var lonB = 15.20792;
-    getMySpeed(latA, lonA, latB, lonB);
+    speed = getMySpeed(latA, lonA, latB, lonB);
+    console.log("MySpeed ", speed);
   //Test velocità
 
 
@@ -99,6 +100,7 @@ exports.getPosizione = (req,res,next) => {
                hyghway : highway,
                maxspeed : maxspeed,
                name : name,
+               speed : speed,
              // all: body,
              // dati:  body.elements[0].tags
             })
