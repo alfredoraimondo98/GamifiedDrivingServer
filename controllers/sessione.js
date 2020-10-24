@@ -5,8 +5,8 @@ const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries')
 //Variabili globali per la posizione di partenza (Da settare all'avvio della sessione di guida)
-var latA = 40.73916;
-var lonA = 15.20591;
+/* var latA = 40.73916;
+var lonA = 15.20591; */
 
 /**
  * Calcola velocità da punto A a punto B (A è il punto iniziale, B è il punto di arrivo)
@@ -34,13 +34,10 @@ function getMySpeed(latA, lonA, latB, lonB){
 
     var speed = ((distance/time)*(3600)); //Calcolo velocità e conversione in mk/h
 
-    console.log("velocità ", speed.toFixed(2)+" km/h" ) //in km/h
+    console.log("velocità ", speed.toFixed(0)+" km/h" ) //in km/h
 
-    //Aggiornamento coordinate punto di partenza per il prossimo calcolo
-    latA=latB;
-    lonA=lonB;
 
-    return speed;
+    return speed.toFixed(0);
 }
 
 
@@ -54,16 +51,19 @@ function getMySpeed(latA, lonA, latB, lonB){
 exports.getPosizione = (req,res,next) => {
     var request = require("request")
 
-    var lat = req.body.lat; //latitudine
-    var lon = req.body.lon; //longitudine
+    var latA = req.body.latA; //latitudine A
+    var lonA = req.body.lonA; //longitudine A
+    var latB = req.body.latB; //latitudine A
+    var lonB = req.body.lonB; //longitudine A
+
     var around = '50.0' //precisione di calcolo della posizione (es: 50 metri vicino alle coordinate)
    
     console.log(lat, lon);
     var speed;
-//Test velocità
-   
-    var latB = 40.74019;
-    var lonB = 15.20792;
+
+//Test velocità  
+    /* var latB = 40.74019;
+    var lonB = 15.20792; */
     speed = getMySpeed(latA, lonA, latB, lonB);
     console.log("MySpeed ", speed);
   //Test velocità
