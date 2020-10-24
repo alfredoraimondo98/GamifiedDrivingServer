@@ -4,9 +4,79 @@ const { validationResult } = require('express-validator');
 const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries')
-//Variabili globali per la posizione di partenza (Da settare all'avvio della sessione di guida)
-/* var latA = 40.73916;
-var lonA = 15.20591; */
+
+
+/**
+ * Create e insert new Session nel database
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.startSession = async (req,res,next) => {
+    let id_utente = req.body.id_utente;
+
+    db.execute(queries.createSession, [0,0,0,0,id_utente])
+    .then( (result) => {
+        res.status(201).json({
+            id_session : result[0].insertId
+        })
+    })
+    .catch( (err) => {
+        res.status(401).json({
+            err : err
+        })
+    })
+}
+
+
+exports.updateSession = async (req,res,next) => {
+    let id_sessione = req.body.id_sessione;
+    let id_utente = req.body.id_utente;
+    let km_percorsi = req.body.distance;
+    let timer_speed_limit = req.body.timer_speed_limit;
+    let timer = getTime(req.body.timer);
+    let health =  req.body.health;
+    let timeGoodDriving;
+    let bonus;
+    let point;
+    const timerUpdate = 5;
+    //Calcolo del malus
+    let malus = (100 - health)/10;
+
+    if(timer_speed_limit[0]){ //Verifica se è stata commessa almeno un infrazione
+        timerFirstSpeedLimit = getTime(timer_speed_limit[0]); // conversione getTime
+        let timeStart = timer.minuti - 5; //Calcolo tempo di partenza dello slot della sessione
+        timeGoodDriving = timerFirstSpeedLimit.minuti - timeStart; //calcolo tempo di guida corretta
+        point = timeGoodDriving; //point calcolati sul tempo di guida corretta
+        bonus = 0; //nessun bonus aggiuntivo per questo slot
+    }
+    else{ //Non sono state commesse infrazioni
+        bonus = 1;
+        point = timerUpdate; //Setta punti 
+    }
+
+
+    point = (point * health)/100; //Punti
+
+    const result = await db.execute(queries.updateSession, [timer, km_percorsi, bonus, malus, id_sessione, id_utente ]);
+  
+    
+
+}
+
+
+function getTime(timer){
+    let ore = +timer.split(":")[0];
+    let minuti = +timer.split(":")[1];
+    let secondi = +timer.split(":")[2];
+
+    return {
+        ore : ore,
+        minuti : minuti,
+        secondi : secondi
+    }
+    
+}
 
 /**
  * Calcola velocità da punto A a punto B (A è il punto iniziale, B è il punto di arrivo)
@@ -37,7 +107,10 @@ function getMySpeed(latA, lonA, latB, lonB){
     console.log("velocità ", speed.toFixed(0)+" km/h" ) //in km/h
 
 
-    return speed.toFixed(0);
+    return {
+        speed: speed.toFixed(0),
+        distance : distance.toFixed(3),
+    }
 }
 
 
@@ -58,18 +131,16 @@ exports.getPosizione = (req,res,next) => {
 
     var around = '50.0' //precisione di calcolo della posizione (es: 50 metri vicino alle coordinate)
    
-    console.log(lat, lon);
+    
     var speed;
 
 //Test velocità  
-    /* var latB = 40.74019;
-    var lonB = 15.20792; */
-    speed = getMySpeed(latA, lonA, latB, lonB);
+    speedObject = getMySpeed(latA, lonA, latB, lonB);
     console.log("MySpeed ", speed);
   //Test velocità
 
 
-    var url = `http://overpass-api.de/api/interpreter?data=[out:json][timeout:25];%20(%20way(around:${around},${lat},${lon});%20);%20out%20body;%20%3E;%20out%20skel%20qt;`
+    var url = `http://overpass-api.de/api/interpreter?data=[out:json][timeout:25];%20(%20way(around:${around},${latB},${lonB});%20);%20out%20body;%20%3E;%20out%20skel%20qt;`
 
     request({ url: url, json: true}, (error, response, body) => {
         if (!error && response.statusCode === 200) {
@@ -100,7 +171,8 @@ exports.getPosizione = (req,res,next) => {
                hyghway : highway,
                maxspeed : maxspeed,
                name : name,
-               speed : speed,
+               speed : speedObject.speed,
+               distance : speedObject.distance
              // all: body,
              // dati:  body.elements[0].tags
             })

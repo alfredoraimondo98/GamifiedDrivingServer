@@ -30,10 +30,15 @@ module.exports = {
     createPortafoglio: "INSERT INTO portafoglio (id_utente) values (?)",
     createStileDiGuida: "INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)",
     createStatisticheGamification: "INSERT INTO statistichegamification (id_utente, id_app, livello) values (?,?,?)",
+    createSession: "INSERT INTO sessione (durata, km_percorsi, bonus, malus, id_utente) VALUES (?,?,?,?,?)",
+
+
 
     insertIntoParcheggio: "INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
 
 
     updateTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ? WHERE id_utente = ?",
     updatePointPortafoglioByIdUtente: "UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?",
+    updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ? bonus = bonus + ?,  malus = ?) WHERE id_sessione = ? AND id_utente = ?",
+
   }
