@@ -52,9 +52,36 @@ exports.getProfilo = async (req,res,next) => {
            message : err
        })
    }
+
+   //getPosizione dell'utente in classifica globale
+   let classificaGlobale;
+   let i = 0;
+   let position;
+    try{
+        const [rows, field] = await db.execute(`SELECT * 
+                                                FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
+                                                ON gamifieddrivingdb.utente.id_utente = gamifieddrivingdb.portafoglio.id_utente 
+                                            ORDER BY punti_drivepass DESC
+                                                `);
+        classificaGlobale = rows;
+    }
+    catch(err){
+        res.status(401).json({
+            message : 'impossibile ottenere la classifica generale'
+        })
+    } 
+    classificaGlobale.forEach( (user) => {
+        if(user.id === idUtente){
+            position = i+1;
+        }
+        i++;
+    })
+
+    
   
    res.status(201).json({
        totale_sessioni : numeroSessioniGuide,
+       posizione : position
    })
 }
 
@@ -169,6 +196,7 @@ async function setAutoPredefinita(idGarage, idAuto){
  * @param {*} next 
  */
 exports.getClassificaGlobale = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
     let classifica;
     try{
         const [rows, field] = await db.execute(`SELECT * 

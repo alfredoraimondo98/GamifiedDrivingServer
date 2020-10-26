@@ -6,6 +6,11 @@ const router = express.Router();
 const queries = require('../utils/queries')
 
 
+exports.endSession = async (req,res,next) =>{
+
+}
+
+
 /**
  * Create e insert new Session nel database
  * @param {*} req 
@@ -18,7 +23,7 @@ exports.startSession = async (req,res,next) => {
     db.execute(queries.createSession, [0,0,0,0,id_utente])
     .then( (result) => {
         res.status(201).json({
-            id_session : result[0].insertId
+            id_sessione : result[0].insertId
         })
     })
     .catch( (err) => {
@@ -48,7 +53,7 @@ exports.updateSession = async (req,res,next) => {
     //Calcolo del malus
     let malus = (100 - health)/10;
 
-/*     console.log("id sessione ", id_sessione);
+/*  console.log("id sessione ", id_sessione);
     console.log("id utente ", id_utente);
     console.log("km percorsi ", km_percorsi);
     console.log("timer speed limit ", timer_speed_limit);
@@ -76,14 +81,14 @@ exports.updateSession = async (req,res,next) => {
         const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, bonus, malus, id_sessione, id_utente ]);
     }
     catch(err){
-        res.statur(401).json({
-            message : "Errore durante l'update"
+        res.status(401).json({
+            message : err
         })
     }
 
-/*     res.status(201).json({
+    res.status(201).json({
         message : "Update sessione"
-    }) */
+    })
 }
 
 
@@ -194,7 +199,7 @@ exports.getPosizione = (req,res,next) => {
                maxspeed : maxspeed,
                name : name,
                speed : speedObject.speed,
-               distance : speedObject.distance
+               distance : +speedObject.distance
              // all: body,
              // dati:  body.elements[0].tags
             })
