@@ -28,7 +28,12 @@ exports.startSession = async (req,res,next) => {
     })
 }
 
-
+/**
+ * Update Session
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 exports.updateSession = async (req,res,next) => {
     let id_sessione = req.body.id_sessione;
     let id_utente = req.body.id_utente;
@@ -43,10 +48,19 @@ exports.updateSession = async (req,res,next) => {
     //Calcolo del malus
     let malus = (100 - health)/10;
 
+/*     console.log("id sessione ", id_sessione);
+    console.log("id utente ", id_utente);
+    console.log("km percorsi ", km_percorsi);
+    console.log("timer speed limit ", timer_speed_limit);
+    console.log("timer ", timer);
+    console.log("health ", health);
+
+ */
+
     if(timer_speed_limit[0]){ //Verifica se è stata commessa almeno un infrazione
         timerFirstSpeedLimit = getTime(timer_speed_limit[0]); // conversione getTime
         let timeStart = timer.minuti - 5; //Calcolo tempo di partenza dello slot della sessione
-        timeGoodDriving = timerFirstSpeedLimit.minuti - timeStart; //calcolo tempo di guida corretta
+        timeGoodDriving = timerFirstSpeedLimit.minuti - timeStart; //calcolo tempo di guida corretta (In minuti, perchè il controllo si effettua ogni 5 minuti)
         point = timeGoodDriving; //point calcolati sul tempo di guida corretta
         bonus = 0; //nessun bonus aggiuntivo per questo slot
     }
@@ -55,13 +69,21 @@ exports.updateSession = async (req,res,next) => {
         point = timerUpdate; //Setta punti 
     }
 
-
+    //console.log("TEMPO OK, ", timeGoodDriving);
     point = (point * health)/100; //Punti
 
-    const result = await db.execute(queries.updateSession, [timer, km_percorsi, bonus, malus, id_sessione, id_utente ]);
-  
-    
+    try{
+        const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, bonus, malus, id_sessione, id_utente ]);
+    }
+    catch(err){
+        res.statur(401).json({
+            message : "Errore durante l'update"
+        })
+    }
 
+/*     res.status(201).json({
+        message : "Update sessione"
+    }) */
 }
 
 
@@ -132,11 +154,11 @@ exports.getPosizione = (req,res,next) => {
     var around = '50.0' //precisione di calcolo della posizione (es: 50 metri vicino alle coordinate)
    
     
-    var speed;
+  
 
 //Test velocità  
-    speedObject = getMySpeed(latA, lonA, latB, lonB);
-    console.log("MySpeed ", speed);
+    var speedObject = getMySpeed(latA, lonA, latB, lonB);
+  
   //Test velocità
 
 

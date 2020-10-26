@@ -39,6 +39,6 @@ module.exports = {
 
     updateTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ? WHERE id_utente = ?",
     updatePointPortafoglioByIdUtente: "UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?",
-    updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ? bonus = bonus + ?,  malus = ?) WHERE id_sessione = ? AND id_utente = ?",
+    updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ?, bonus = bonus + ?,  malus = ? WHERE id_sessione = ? AND id_utente = ?",
 
   }

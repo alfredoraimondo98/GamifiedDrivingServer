@@ -6,7 +6,7 @@ const sessioneController = require('../controllers/sessione');
 const isAuth = require('../middleware/is-auth');
 
 router.post('/startSession',sessioneController.startSession);
-//router.post('/updateSession', sessioneController.updateSession);
+router.post('/updateSession', sessioneController.updateSession);
 router.post('/getPosizione', sessioneController.getPosizione);
 
 
