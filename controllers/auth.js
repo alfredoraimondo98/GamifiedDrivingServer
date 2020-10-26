@@ -197,6 +197,8 @@ exports.loginApp = async (req,res,next) => {
     let portafoglio;
     let garage;
     let stileDiGuida;
+    let idAutoPredefinita;
+
     try{
          const [row,field] = await db.execute(queries.getUtenteByEmail, [email]);
          utenteLogin = row[0];
@@ -221,6 +223,12 @@ exports.loginApp = async (req,res,next) => {
         if(!garage){
             return res.status(401).json({
                 message : 'Stile di guida utente non disponibile'
+            });
+        }
+        idAutoPredefinita = await getAutoPredefinita(utenteLogin.id_utente);
+        if(!idAutoPredefinita){
+            return res.status(401).json({
+                message : 'Auto predefinita non disponibile'
             });
         }
     }
@@ -259,6 +267,7 @@ exports.loginApp = async (req,res,next) => {
                 punti_drivepass : portafoglio.punti_drivepass,
                 id_garage : garage.id_garage,
                 id_portafoglio : portafoglio.id_portafoglio,
+                id_auto_predefinita : idAutoPredefinita,
                 friends : friends,
                 token : token,
             });
@@ -367,121 +376,118 @@ exports.createUtente = async (req, res, next) => {
                 var idInsertUtente = result.insertId;
 
 
-                conn.query(queries.createGarage, [idInsertUtente], (err, result) => {
-                    if (err) {
-                        conn.rollback((err) => {
-
-                            console.log("Garageerror", err);
-                            //conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
-                        });
-                        return res.status(422).json({
-                            message: 'Errore insert garage'
-                        });
-                    }
-                    var idInsertGarage = result.insertId;
-
-
-
-                    //Inserisce auto nel parcheggio del garage
-                    /* auto.forEach( (item) => {
-                        console.log(item);
-                        conn.query('INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, item.idauto, true, false], (err, resul)=>{
-                            if (err) {
-                                conn.rollback((err) => {
-                                    console.log("Create parcheggio error", err);
-                                });
-                                return res.status(422).json({
-                                    message: 'Errore insert garage'
-                                });  
-                            }
-                           
-                        });
-                
-                    }) */
-
-                    conn.query(queries.createPortafoglio, [idInsertUtente], (err, result) => {
+                    conn.query(queries.createGarage, [idInsertUtente], (err, result) => {
                         if (err) {
                             conn.rollback((err) => {
 
                                 console.log("Garageerror", err);
-                               // conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
-                              //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
+                                //conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
                             });
                             return res.status(422).json({
-                                message: 'Errore insert portafoglio'
+                                message: 'Errore insert garage'
                             });
                         }
-                        var idInsertPortafoglio = result.insertId;
+                        var idInsertGarage = result.insertId;
 
 
-                        defineStileGuida(tipo);
 
-                        conn.query(queries.createStileDiGuida, [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
+                        //Inserisce auto di default nel parcheggio del garage
+                        conn.query('INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, 0, true, true], (err, resul)=>{
                             if (err) {
                                 conn.rollback((err) => {
-
-                                    console.log("Garageerror", err);
-                                  //  conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
-                                  //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
-                                  //  conn.execute('DELETE FROM portafoglio WHERE idutente = ?', [idInsertUtente]);
+                                    console.log("Insert auto predefinita error", err);
                                 });
                                 return res.status(422).json({
-                                    message: 'Errore insert stile di guida'
-                                });
+                                    message: 'Errore insert auto predefinita'
+                                });  
                             }
-                            var idInsertStileGuida = result.insertId;
-                       
+                           
+                   
+                    
 
-                            conn.query(queries.createStatisticheGamification, [idInsertUtente, 1, 0], (err, result) => {
+                            conn.query(queries.createPortafoglio, [idInsertUtente], (err, result) => {
                                 if (err) {
                                     conn.rollback((err) => {
-                                        console.log("error iscrizione a gamifiedDriving", err);
+
+                                        console.log("Garageerror", err);
+                                    // conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
+                                    //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
                                     });
                                     return res.status(422).json({
-                                        message: 'Errore insert statistichegamification'
+                                        message: 'Errore insert portafoglio'
                                     });
                                 }
-                                var idInsertStileGuida = result.insertId;
+                                var idInsertPortafoglio = result.insertId;
+
+
+                                defineStileGuida(tipo);
+
+                                conn.query(queries.createStileDiGuida, [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
+                                    if (err) {
+                                        conn.rollback((err) => {
+
+                                            console.log("Garageerror", err);
+                                        //  conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
+                                        //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
+                                        //  conn.execute('DELETE FROM portafoglio WHERE idutente = ?', [idInsertUtente]);
+                                        });
+                                        return res.status(422).json({
+                                            message: 'Errore insert stile di guida'
+                                        });
+                                    }
+                                    var idInsertStileGuida = result.insertId;
+                       
+
+                                    conn.query(queries.createStatisticheGamification, [idInsertUtente, 1, 0], (err, result) => {
+                                        if (err) {
+                                            conn.rollback((err) => {
+                                                console.log("error iscrizione a gamifiedDriving", err);
+                                            });
+                                            return res.status(422).json({
+                                                message: 'Errore insert statistichegamification'
+                                            });
+                                        }
+                                        var idInsertStileGuida = result.insertId;
                         
 
 
-                                conn.commit((err) => {
-                                    if (err) {
-                                        conn.rollback((err) => {
-                                            return res.status(422).json({
-                                                message: 'Impossibile effettuare il commit. Registrazione fallita!'
-                                            });
+                                        conn.commit((err) => {
+                                            if (err) {
+                                                conn.rollback((err) => {
+                                                    return res.status(422).json({
+                                                        message: 'Impossibile effettuare il commit. Registrazione fallita!'
+                                                    });
+                                                });
+                                            }
+                                            else {
+                                                console.log('Transaction Complete.');
+                                                //console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
+                                            /*  console.log("chiudo connessione");
+                                                conn.end(); */
+                                            /*  if(tipo_accesso === 'facebook'){
+                                                    res.redirect('http://localhost:4200/sd/menu');
+                                                } */
+                                                return res.status(201).json({
+                                                    message: 'Registrazione completata',
+                                                }); 
+                                            }
                                         });
-                                    }
-                                    else {
-                                        console.log('Transaction Complete.');
-                                        //console.log(" dati ", idInsertUtente, idInsertGarage, idInsertPortafoglio);
-                                       /*  console.log("chiudo connessione");
-                                        conn.end(); */
-                                       /*  if(tipo_accesso === 'facebook'){
-                                            res.redirect('http://localhost:4200/sd/menu');
-                                        } */
-                                        return res.status(201).json({
-                                            message: 'Registrazione completata',
-                                        }); 
-                                    }
-                                });
-                            }); 
-                        }); 
+                                    }); 
+                                }); 
+                            });
+                        });
                     });
                 });
             });
-        });
-    }
-    catch (err) {
-        console.log("chiudo connessione");
-        conn.end();
-        return res.status(401).json({
-            message: err,
-        });
-        console.log(err);
-    }
-   
+        }
+        catch (err) {
+            console.log("chiudo connessione");
+            conn.end();
+            return res.status(401).json({
+                message: err,
+            });
+            console.log(err);
+        }
 }
 
 
@@ -623,6 +629,24 @@ async function getStileDiGuidaByIdUtente(idUtente){
     return stileDiGuida;
 }
 
+/**
+ * Recupera auto predefinita dell'utente
+ */
+async function getAutoPredefinita(idUtente){
+    let idAutoPredefinita;
+    let idGarage = await getGarageByIdUtente(idUtente);
+    try{
+        const [row, field] = await db.execute(queries.getAutoPredefinita, [idGarage]);
+        if(row[0]){
+            return false;
+        }
+        idAutoPredefinita = row[0]
+    }
+    catch(err){
+        return err;
+    }
+    return idAutoPredefinita;
+}
 
 
 

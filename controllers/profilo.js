@@ -71,7 +71,7 @@ exports.getProfilo = async (req,res,next) => {
         })
     } 
     classificaGlobale.forEach( (user) => {
-        if(user.id === idUtente){
+        if(user.id_utente === idUtente){
             position = i+1;
         }
         i++;
@@ -115,7 +115,7 @@ async function getPortafoglioByIdUtente(idUtente) {
  * @param {*} next 
  */
 exports.getGarage = async (req,res,next) => {
-    const errors = validationResult(req);
+  /*   const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
         return res.json({
@@ -123,25 +123,15 @@ exports.getGarage = async (req,res,next) => {
             error: errors.array()
         });
     }
-
-    idUtente = req.body.id_utente;
+ */
+    let idGarage = req.body.id_garage;
    
-    let idGarage;
     let parcheggio = [];
-    try{
-        const [row, fields] = await db.execute(queries.getGarageByIdUtente, [idUtente]);
-        idGarage = row[0].idgarage;
-    }
-    catch(err){
-        res.status(401).json({
-            message: err
-        })
-    }
+    
     
     parcheggio = await getParcheggioByIdGarage(idGarage)
-    setAutoPredefinita(idGarage, 1)
+    //setAutoPredefinita(idGarage, 1)
     res.status(201).json({
-        message : 'ok',
         parcheggio : parcheggio
     })
 }
@@ -158,33 +148,31 @@ async function getParcheggioByIdGarage(idGarage){
         //console.log(parcheggio);
     }
     catch(err){
-        res.status(401).json({
-            message: err
-        })
+       return err;
     }
     return parcheggio;
 }
 
 /**
- * Settare l'auto predefinita da utilizzare
+ * Settare l'auto predefinita da utilizzare //id vecchia  e id nuova
  * @param {*} idAuto 
  */
-async function setAutoPredefinita(idGarage, idAuto){
-    try{
-        const [row, field] = await db.execute('UPDATE parcheggia SET predefinito = ? WHERE id_garage = ?', [0, idUtente])
-    }
-    catch(err){
-        console.log(err);
-        return err;
-    }
+exports.setAutoPredefinita = async (req,res,next) => {
+    let idGarage = req.body.id_garage;
+    let oldAuto = req.body.old_auto;
+    let newAuto = req.body.new_auto;
 
     try{
-        const [row, field] = await db.execute('UPDATE parcheggia SET predefinito = ? WHERE id_garage = ? AND id_auto = ?', [1, idUtente, idAuto])
+        result = await db.execute(queries.deleteAutoPredefinita, [idGarage, oldAuto]);
+        resultUpdate = await db.execute(queries.setNewAutoPredefinita, [idGarage, newAuto]);
     }
     catch(err){
-        console.log(err);
-        return err;
+        res.status(401).json({
+            message : err
+        })
     }
+
+
 
 }
 
