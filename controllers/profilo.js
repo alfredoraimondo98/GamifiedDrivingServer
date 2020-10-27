@@ -115,7 +115,7 @@ async function getPortafoglioByIdUtente(idUtente) {
  * @param {*} next 
  */
 exports.getGarage = async (req,res,next) => {
-  /*   const errors = validationResult(req);
+    const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
         return res.json({
@@ -123,16 +123,74 @@ exports.getGarage = async (req,res,next) => {
             error: errors.array()
         });
     }
- */
+
     let idGarage = req.body.id_garage;
    
     let parcheggio = [];
+    let allAuto = [];
+    
+    parcheggio = await getParcheggioByIdGarage(idGarage); //Tutte le auto sbloccate dell'utente
+     
+    try{
+        const [rows, field] = await db.execute(queries.getAllAuto); //Recupera tutte le auto
+        allAuto = rows;
+    }
+    catch(err){
+        res.status(201).json({
+            message : 'Impossibile recuperare auto',
+            err : err
+        })
+    }
+
+  
+
+    //Recupera le auto locked per l'utente
+    let autoLocked = allAuto.filter( (item) => {
+        let bool = false;
+        parcheggio.forEach( (a) => {
+            if(a.id_auto === item.id_auto){
+                bool = true;
+            }
+        })
+        if(!bool){
+            return item;
+        }
+    })
+
+    //Formatta le auto locked per la risposta
+    let autoLockedFormatted = [];
+    autoLocked.forEach( (item) => {
+        auto = {
+            id_auto : item.id_auto,
+            nome : item.nome,
+            rarita : item.rarita,
+            img : item.img,
+            img_sessione : item.img_sessione,
+            colore : item.colore,
+            costo : item.costo,
+            predefinito : 0,
+            disponibilita : 0
+        };
+        //console.log("AUTO FORMATTED", auto)
+        autoLockedFormatted.push(auto);
+    })
+
+    
+    garage = parcheggio.concat(autoLockedFormatted); //Concatena le auto locked e unlocked
+
+    //Inserisce in posizione 0 dell'array l'auto predefinita
+    let el;
+    garage.forEach( (item) => {
+        if( item.predefinito === 1 ){
+            el = garage.splice(garage.indexOf(item),1);
+         }
+     })
+ 
+    garage.splice(0, 0, el[0]);
     
     
-    parcheggio = await getParcheggioByIdGarage(idGarage)
-    //setAutoPredefinita(idGarage, 1)
     res.status(201).json({
-        parcheggio : parcheggio
+        parcheggio : garage
     })
 }
 
