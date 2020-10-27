@@ -392,7 +392,7 @@ exports.createUtente = async (req, res, next) => {
 
 
                         //Inserisce auto di default nel parcheggio del garage
-                        conn.query('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, 0, 1, 1], (err, resul)=>{
+                        conn.query('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, 1, 1, 1], (err, resul)=>{
                             if (err) {
                                 conn.rollback((err) => {
                                     console.log("Insert auto predefinita error", err);
