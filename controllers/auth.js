@@ -267,7 +267,7 @@ exports.loginApp = async (req,res,next) => {
                 punti_drivepass : portafoglio.punti_drivepass,
                 id_garage : garage.id_garage,
                 id_portafoglio : portafoglio.id_portafoglio,
-                id_auto_predefinita : idAutoPredefinita,
+                id_auto_predefinita : idAutoPredefinita.id_auto,
                 friends : friends,
                 token : token,
             });
@@ -392,7 +392,7 @@ exports.createUtente = async (req, res, next) => {
 
 
                         //Inserisce auto di default nel parcheggio del garage
-                        conn.query('INSERT INTO parcheggia (idgarage, idauto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, 0, true, true], (err, resul)=>{
+                        conn.query('INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) values (?,?,?,?)', [idInsertGarage, 0, 1, 1], (err, resul)=>{
                             if (err) {
                                 conn.rollback((err) => {
                                     console.log("Insert auto predefinita error", err);
@@ -634,13 +634,13 @@ async function getStileDiGuidaByIdUtente(idUtente){
  */
 async function getAutoPredefinita(idUtente){
     let idAutoPredefinita;
-    let idGarage = await getGarageByIdUtente(idUtente);
+    let garage = await getGarageByIdUtente(idUtente);
     try{
-        const [row, field] = await db.execute(queries.getAutoPredefinita, [idGarage]);
-        if(row[0]){
+        const [row, field] = await db.execute(queries.getAutoPredefinita, [garage.id_garage]);
+        if(!row[0]){
             return false;
         }
-        idAutoPredefinita = row[0]
+        idAutoPredefinita = row[0];
     }
     catch(err){
         return err;
