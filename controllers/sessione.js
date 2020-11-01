@@ -211,3 +211,26 @@ exports.getPosizione = (req,res,next) => {
         }
     })
 }
+
+/**
+ * getAuto by Id
+ */
+exports.getAutoPredefinita = async (req,res,next) => {
+    var idAuto = req.body.id_auto;
+
+    let auto;
+    try{
+        const [row, field] = db.execute(queries.getAutoById, [idAuto]);
+        auto = row[0];
+    }
+    catch(err){
+        res.status(401).json({
+            error : err
+        })
+    }
+
+    res.status(201).json({
+        auto : auto
+    })
+
+}

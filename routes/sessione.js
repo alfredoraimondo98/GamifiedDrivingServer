@@ -10,5 +10,6 @@ router.post('/updateSession', sessioneController.updateSession);
 router.post('/ensSession', sessioneController.endSession);
 router.post('/getPosizione', sessioneController.getPosizione);
 
+router.post('/getAutoPredefinita', sessioneController.getAutoPredefinita);
 
 module.exports = router;
