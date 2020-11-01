@@ -220,7 +220,7 @@ exports.getAutoPredefinita = async (req,res,next) => {
 
     let auto;
     try{
-        const [row, field] = db.execute(queries.getAutoById, [idAuto]);
+        const [row, field] = await db.execute(queries.getAutoById, [idAuto]);
         auto = row[0];
     }
     catch(err){

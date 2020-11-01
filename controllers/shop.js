@@ -459,7 +459,7 @@ exports.buyAuto = async (req,res,next) => {
 
     try{   //Verifica disponibilità point
         updatePoint = await verificaPoints(idUtente, auto.costo);
-        if(!updatePoint){
+        if(updatePoint === false){
             return res.status(401).json({
                 message: 'AcPoint non sufficienti'
             })
