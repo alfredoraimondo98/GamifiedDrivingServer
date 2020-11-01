@@ -19,7 +19,7 @@ module.exports = {
 
     getAllAuto: "SELECT * FROM auto",
     getAutoById: "SELECT * FROM auto WHERE id_auto = ? ",
-    getAutoPredefinita : "SELECT id_auto FROM parcheggia WHERE id_garage = ? AND predefinito = '1'",
+    getAutoPredefinita : "SELECT id_auto FROM parcheggia WHERE id_garage = ? AND predefinito = 1",
     getAutoByIdAndByIdGarage: "SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?",
 
 

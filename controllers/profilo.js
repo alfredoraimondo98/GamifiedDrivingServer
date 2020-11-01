@@ -163,7 +163,7 @@ exports.getGarage = async (req,res,next) => {
         auto = {
             id_auto : item.id_auto,
             nome : item.nome,
-            rarita : item.rarita,
+            rarita : item.rarita.toLowerCase(),
             img : item.img,
             img_sessione : item.img_sessione,
             colore : item.colore,
@@ -230,7 +230,9 @@ exports.setAutoPredefinita = async (req,res,next) => {
         })
     }
 
-
+    res.status(201).json({
+        message : 'update auto predefinita ok'
+    })
 
 }
 
