@@ -58,8 +58,8 @@ function upLevel(livello, punti, puntiDrivePass){
 
 
     return {
-        puntiDrivePass : puntiDrivePass,
-        livello : livello
+        puntiGuadagnati : puntiDrivePass,
+        nuovoLivello : livello
     }
 
 }
@@ -114,10 +114,11 @@ exports.endSession = async (req,res,next) =>{
 
     let newLevel = upLevel(+livello, +punti, +puntiDrivePass); //Aggiorna livello
 
+    newPuntiDrivePass = puntiDrivePass + punti; //nuovi punti drive pass
 
     //Aggiornamento portafoglio e statisticheGamification (livello)
     try{
-        const result = await db.execute(queries.updateDrivePassPortafoglio, [punti, newLevel.livello, punti, idUtente ] );
+        const result = await db.execute(queries.updateDrivePassPortafoglio, [punti, newLevel.livello, newPuntiDrivePass, idUtente ] );
         await db.execute(queries.updateLivelloStatisticheGamification,[newLevel.livello, idUtente]);
     }
     catch(err){
@@ -128,7 +129,11 @@ exports.endSession = async (req,res,next) =>{
 
     
     res.status(201).json({
-        score : newLevel
+        score : {
+                punti_guadagnati : newLevel.puntiGuadagnati,
+                nuovo_livello : newLevel.nuovoLivello,
+                nuovi_punti_drivepass : newPuntiDrivePass
+            }
     })
 }
 
