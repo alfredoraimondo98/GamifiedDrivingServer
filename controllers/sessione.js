@@ -5,6 +5,10 @@ const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries')
 
+/**
+ * Punti del range livello
+ * @param {*} livello 
+ */
 function rangeLivello(livello){
     if(livello >= 1 && livello <= 15){
         return 10
@@ -32,6 +36,12 @@ function rangeLivello(livello){
     }
 }
 
+/**
+ * Definisce il nuovo livello drivepass (e aggiornamento punti e livello)
+ * @param {*} livello 
+ * @param {*} punti 
+ * @param {*} puntiDrivePass 
+ */
 function upLevel(livello, punti, puntiDrivePass){
 
     //Recupera quanti punti sono attualmente posseduti sul livello attuale
@@ -58,12 +68,18 @@ function upLevel(livello, punti, puntiDrivePass){
 
 
     return {
-        puntiGuadagnati : puntiDrivePass,
-        nuovoLivello : livello
+        puntiGuadagnati : puntiDrivePass, //Punti guadagnati su nuovo livello attuale
+        nuovoLivello : livello //Nuovo livello attuale
     }
 
 }
 
+/**
+ * Termina sessione di guida e calcola puntaggia finale
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 exports.endSession = async (req,res,next) =>{
     let idUtente = req.body.id_utente;
     let idSessione = req.body.id_sessione;
@@ -118,8 +134,8 @@ exports.endSession = async (req,res,next) =>{
 
     //Aggiornamento portafoglio e statisticheGamification (livello)
     try{
-        const result = await db.execute(queries.updateDrivePassPortafoglio, [punti, newLevel.livello, newPuntiDrivePass, idUtente ] );
-        await db.execute(queries.updateLivelloStatisticheGamification,[newLevel.livello, idUtente]);
+        const result = await db.execute(queries.updateDrivePassPortafoglio, [punti, newLevel.nuovoLivello, newPuntiDrivePass, idUtente ] );
+        await db.execute(queries.updateLivelloStatisticheGamification,[newLevel.nuovoLivello, idUtente]);
     }
     catch(err){
         res.status(401).json({
