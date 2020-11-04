@@ -8,6 +8,8 @@ module.exports = {
     getGarageByIdUtente: "SELECT * FROM garage WHERE id_utente = ?",
 
     getStileDiGuidaByIdUtente: "SELECT * FROM stilediguida WHERE id_utente = ?",
+    getCostanteCrescita: "SELECT costante_crescita FROM stilediguida WHERE id_utente = ?",
+
 
     getParcheggioByIdGarage: `SELECT gamifieddrivingdb.auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
                                 FROM gamifieddrivingdb.parcheggia JOIN gamifieddrivingdb.auto 
@@ -22,6 +24,7 @@ module.exports = {
     getAutoPredefinita : "SELECT id_auto FROM parcheggia WHERE id_garage = ? AND predefinito = 1",
     getAutoByIdAndByIdGarage: "SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?",
 
+    getSessioneById: "SELECT * FROM sessione WHERE id_sessione = ? AND id_utente = ?",
 
     getAllAvatar: "SELECT * FROM avatar",
     getAvatarById: "SELECT * FROM avatar WHERE id_avatar = ? ",
@@ -40,10 +43,15 @@ module.exports = {
 
     updateTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ? WHERE id_utente = ?",
     updatePointPortafoglioByIdUtente: "UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?",
+    updateDrivePassPortafoglio: "UPDATE portafoglio SET acpoint = acpoint + ?, livello = ?, punti_drivepass = punti_drivepass + ? WHERE id_utente = ?",
+
     updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ?, bonus = bonus + ?,  malus = ? WHERE id_sessione = ? AND id_utente = ?",
 
     AutoPredefinita : "UPDATE parcheggia SET predefinito = 1 WHERE id_garage = ? AND id_auto = ?",
     setNewAutoPredefinita : "UPDATE parcheggia SET predefinito = 1 WHERE id_garage = ? AND id_auto = ?",
     deleteAutoPredefinita : "UPDATE parcheggia SET predefinito = 0 WHERE id_garage = ? AND id_auto = ?",
+
+    updateLivelloStatisticheGamification: "UPDATE statistichegamification SET livello = ? WHERE id_utente = ? AND id_app = 1", //id_app = 1 GamifiedDriving
+
 
   }

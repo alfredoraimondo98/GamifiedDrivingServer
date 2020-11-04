@@ -5,9 +5,131 @@ const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries')
 
+function rangeLivello(livello){
+    if(livello >= 1 && livello <= 15){
+        return 10
+    }
+    if(livello >= 16 && livello <= 30){
+        return 15
+    }
+    if(livello >= 31 && livello <= 49){
+        return 20
+    }
+    if(livello >= 50 && livello <= 65){
+        return 25
+    }
+    if(livello >= 66 && livello <= 79){
+        return 30
+    }
+    if(livello >= 80 && livello <= 95){
+        return 35
+    }
+    if(livello >= 96 && livello <= 98){
+        return 38
+    }
+    if(livello >= 99 && livello <= 100){
+        return 40
+    }
+}
+
+function upLevel(livello, punti, puntiDrivePass){
+
+    //Recupera quanti punti sono attualmente posseduti sul livello attuale
+    for(let i=1; i<livello; i++){ 
+        puntiDrivePass = puntiDrivePass - rangeLivello(i); //Scala i punti già completati nei livelli precedenti del drivepass
+    }
+
+    console.log("puntiDrivePass", puntiDrivePass);
+
+    puntiDrivePass = puntiDrivePass + punti; //somma i punti di bonus al drive pass
+    console.log("puntiDrivePass", puntiDrivePass);
+
+    let rangeCurrentLivello = rangeLivello(livello); //recupera il range del livello attuale
+
+    while(puntiDrivePass >= rangeCurrentLivello){ //Verifica se i punti attuali permettono di completare il range del livello attuale
+        console.log("puntiDrivePass", puntiDrivePass, livello);
+        puntiDrivePass = puntiDrivePass - rangeCurrentLivello; //decrementa i punti del rangeLivello attuale ai puntiDrivePass
+        livello ++; //Incrementa il livello (Livello compleato)
+    }
+    console.log("puntiDrivePass", puntiDrivePass);
+
+
+    console.log("livello", livello);
+
+
+    return {
+        puntiDrivePass : puntiDrivePass,
+        livello : livello
+    }
+
+}
 
 exports.endSession = async (req,res,next) =>{
+    let idUtente = req.body.id_utente;
+    let idSessione = req.body.id_sessione;
 
+    let puntiDrivePass;
+    let livello;
+    let costanteCrescita;
+    let punti;
+
+    //recupera punti sessione
+    try{
+        const[row, field]= await db.execute(queries.getSessioneById, [idSessione, idUtente]);
+        punti = row[0].bonus;
+    }
+    catch(err){
+        res.status(401).json({
+            error : err
+        })
+    }
+
+
+    //recupera punti drive pass e livello
+    try{
+        const[row, field]= await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
+        puntiDrivePass = row[0].punti_drivepass;
+        livello = row[0].livello;
+    }
+    catch(err){
+        res.status(401).json({
+            error : err
+        })
+    }
+
+
+    //recupera costante di crescita utente
+    try{
+        const[row, field]= await db.execute(queries.getCostanteCrescita, [idUtente]);
+        costanteCrescita = row[0].costante_crescita;
+    }
+    catch(err){
+        res.status(401).json({
+            error : err
+        })
+    }
+
+    console.log("costante",costanteCrescita)
+    punti = punti * +costanteCrescita; //Normalizza punti guardagnati sulla base della costante crescita
+
+    let newLevel = upLevel(+livello, +punti, +puntiDrivePass); //Aggiorna livello
+
+
+    //Aggiornamento portafoglio e statisticheGamification (livello)
+    try{
+        const result = await db.execute(queries.updateDrivePassPortafoglio, [punti, newLevel.livello, punti, idUtente ] );
+        await db.execute(queries.updateLivelloStatisticheGamification,[newLevel.livello, idUtente]);
+    }
+    catch(err){
+        res.status(401).json({
+            error : err
+        })
+    }
+
+    
+    res.status(201).json({
+        risposta : newLevel
+    })
 }
 
 
@@ -62,12 +184,13 @@ exports.updateSession = async (req,res,next) => {
 
  */
 
-    if(timer_speed_limit[0]){ //Verifica se è stata commessa almeno un infrazione
+    if(timer_speed_limit[0] && (timer.minuti >= 5 || timer.ore >= 1)){ //Verifica se è stata commessa almeno un infrazione
         timerFirstSpeedLimit = getTime(timer_speed_limit[0]); // conversione getTime
         let timeStart = timer.minuti - 5; //Calcolo tempo di partenza dello slot della sessione
         timeGoodDriving = timerFirstSpeedLimit.minuti - timeStart; //calcolo tempo di guida corretta (In minuti, perchè il controllo si effettua ogni 5 minuti)
         point = timeGoodDriving; //point calcolati sul tempo di guida corretta
         bonus = 0; //nessun bonus aggiuntivo per questo slot
+
     }
     else{ //Non sono state commesse infrazioni
         bonus = 1;
@@ -75,10 +198,10 @@ exports.updateSession = async (req,res,next) => {
     }
 
     //console.log("TEMPO OK, ", timeGoodDriving);
-    point = (point * health)/100; //Punti
+    point = (point * health)/100; //Punti (corrisponde a bonus del db)
 
     try{
-        const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, bonus, malus, id_sessione, id_utente ]);
+        const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, point, malus, id_sessione, id_utente ]);
     }
     catch(err){
         res.status(401).json({

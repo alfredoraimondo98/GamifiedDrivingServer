@@ -7,7 +7,7 @@ const isAuth = require('../middleware/is-auth');
 
 router.post('/startSession',sessioneController.startSession);
 router.post('/updateSession', sessioneController.updateSession);
-router.post('/ensSession', sessioneController.endSession);
+router.post('/endSession', sessioneController.endSession);
 router.post('/getPosizione', sessioneController.getPosizione);
 
 router.post('/getAutoPredefinita', sessioneController.getAutoPredefinita);
