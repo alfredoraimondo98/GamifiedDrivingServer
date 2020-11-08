@@ -45,4 +45,4 @@ app.use('/sessione', sessioneRoutes);
 
 
 
-app.listen(process.env.NODE_PORT || 3000, () => console.log("server start"));
+app.listen(process.env.PORT || 35540, () => console.log("server start"));
