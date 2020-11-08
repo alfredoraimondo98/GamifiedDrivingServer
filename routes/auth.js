@@ -19,7 +19,7 @@ router.get('/login/me', isAuth, authController.loginMe);
 router.post('/checkEmail', authController.checkEmail);
 
 router.get('/facebook', passport.authenticate("facebook"));
-router.get('/facebook/callback', passport.authenticate('facebook', { successRedirect: 'http://localhost:4200/sd/menu', failureRedirect: '/auth/errorLogin' }));
+router.get('/facebook/callback', passport.authenticate('facebook', { successRedirect: 'http://localhost:8000/sd/menu', failureRedirect: '/auth/errorLogin' }));
 router.get('/successLoginFacebook', authController.successFb);
 router.get('/preSuccessLoginFacebook', authController.preSuccessFb);
 router.post('/errorLogin', authController.errorFb);
