@@ -258,7 +258,8 @@ exports.getClassificaGlobale = async (req,res,next) => {
     }
     catch(err){
        res.status(401).json({
-           message : 'impossibile ottenere la classifica generale'
+           message : 'impossibile ottenere la classifica generale',
+           mess : err
        })
     }
 
