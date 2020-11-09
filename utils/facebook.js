@@ -22,7 +22,7 @@ var logFunction;
       {
         clientID: "372413867105333",
         clientSecret: "7deb65907639b13ac4675b120b36f1b5",
-        callbackURL: "http://localhost:3000/auth/facebook/callback", //Route da richiamare in seguito al login con facebook
+        callbackURL: "https://gamified-driving-server.herokuapp.com/auth/facebook/callback", //Route da richiamare in seguito al login con facebook
     },
     
     logFunction = (accessToken, refreshToken, profile, cb) => {
