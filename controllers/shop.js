@@ -43,7 +43,8 @@ exports.buyWithTickets = async (req,res,next) => {
             if (err) {
                 console.log(err);
                 return res.status(422).json({
-                    message: 'Impossibile avviare la procedura (transaction failed)'
+                    text: "impossibile procedere all'acquisto",
+                    err : err
                 });
             }
 
@@ -377,7 +378,7 @@ exports.getShopAuto = async (req,res,next) =>{
     }
     catch(err){
         res.status(201).json({
-            message : 'Impossibile recuperare auto',
+            text : "impossibile recuperare auto",
             err : err
         })
     }
@@ -388,7 +389,7 @@ exports.getShopAuto = async (req,res,next) =>{
     }
     catch(err){
         res.status(201).json({
-            message : 'Impossibile recuperare id garage',
+            text : "impossibile recuperare il garage dell'utente",
             err : err
         })
     }
@@ -399,7 +400,7 @@ exports.getShopAuto = async (req,res,next) =>{
     }
     catch(err){
         res.status(201).json({
-            message : 'Impossibile recuperare le auto parcheggiate nel garage di questo utente',
+            text : 'impossibile recuperare le auto parcheggiate nel garage di questo utente',
             err : err
         })
     
@@ -447,7 +448,7 @@ exports.buyAuto = async (req,res,next) => {
         const [row, field] = await db.execute(queries.getAutoByIdAndByIdGarage, [idAuto, idGarage]);
         if(row[0]){
             res.status(401).json({
-                message : 'Auto già presente nel tuo garage.'
+                text : 'auto già presente nel tuo garage.'
             })
         }
     }  
@@ -461,13 +462,14 @@ exports.buyAuto = async (req,res,next) => {
         updatePoint = await verificaPoints(idUtente, auto.costo);
         if(updatePoint === false){
             return res.status(401).json({
-                message: 'AcPoint non sufficienti'
+                text: 'AcPoint non sufficienti'
             })
         }
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile verificare i coin disponibili'
+            text : 'impossibile verificare i coin disponibili',
+            err : err
         })
     }
 

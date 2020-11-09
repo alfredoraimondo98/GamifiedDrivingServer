@@ -43,7 +43,8 @@ exports.getProfilo = async (req,res,next) => {
       portafoglio = await getPortafoglioByIdUtente(idUtente);
         if(!portafoglio){
             res.status(401).json({
-                message : 'portafoglio non disponibile'
+                text : "impossibile recuperare il portafoglio dell'utente",
+                err : err
             })
         }
    }
@@ -67,8 +68,8 @@ exports.getProfilo = async (req,res,next) => {
     }
     catch(err){
         res.status(401).json({
-            message : err,
-            
+            text : "impossibile recuperare la classifica",
+            err : err
 
         })
     } 
@@ -92,7 +93,7 @@ exports.getProfilo = async (req,res,next) => {
  * @param {*} idUtente 
  */
 async function getPortafoglioByIdUtente(idUtente) {        
-    console.log("cerco questo ", idUtente);
+    //console.log("cerco questo ", idUtente);
     let portafoglio;
     try{
         const [row, fields] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
@@ -138,8 +139,8 @@ exports.getGarage = async (req,res,next) => {
         allAuto = rows;
     }
     catch(err){
-        res.status(201).json({
-            message : 'Impossibile recuperare auto',
+        res.status(401).json({
+            text : 'impossibile recuperare auto',
             err : err
         })
     }
@@ -228,7 +229,8 @@ exports.setAutoPredefinita = async (req,res,next) => {
     }
     catch(err){
         res.status(401).json({
-            message : err
+            text : "impossibile settare l'auto predefinita",
+            err : err
         })
     }
 
@@ -284,7 +286,8 @@ exports.getClassificaLocale = async (req,res,next) => {
     }   
     catch(err){
         res.status(401).json({
-            message : 'impossibile recuperare dati utente'
+            text : 'impossibile recuperare dati utente',
+            err : err
         })
     }
     
@@ -349,13 +352,14 @@ exports.getClassificaFacebook = async (req,res,next) => {
         let portafoglio = await db.execute(queries.getPortafoglioByIdUtente, [friend[0][0].id_utente]);
         if(!portafoglio){
             return res.status(401).json({
-                message : 'Portafoglio utente non disponibile'
+                text : 'impossibile recuperare classifica facebook',
+                err : err
             });
         }
         let stileDiGuida = await db.execute(queries.getStileDiGuidaByIdUtente, [friend[0][0].id_utente]);
         if(!stileDiGuida){
             return res.status(401).json({
-                message : 'Stile di guida utente non disponibile'
+                message : 'impossibile recuperare classifica facebook'
             });
         }
 

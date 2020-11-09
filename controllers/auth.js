@@ -369,7 +369,8 @@ exports.createUtente = async (req, res, next) => {
                         console.log("Utenteerror", err);
                     });
                     return res.status(422).json({
-                        message: 'Errore insert utente'
+                        text: 'impossibile inserire un nuovo utente',
+                        err : err
                     });
                 }
 
@@ -384,7 +385,8 @@ exports.createUtente = async (req, res, next) => {
                                 //conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
                             });
                             return res.status(422).json({
-                                message: 'Errore insert garage'
+                                text: 'impossibile creare un nuovo garage',
+                                err : err
                             });
                         }
                         var idInsertGarage = result.insertId;
@@ -398,7 +400,8 @@ exports.createUtente = async (req, res, next) => {
                                     console.log("Insert auto predefinita error", err);
                                 });
                                 return res.status(422).json({
-                                    message: 'Errore insert auto predefinita'
+                                    text: 'impossibile settare auto predefinita',
+                                    err : err
                                 });  
                             }
                            
@@ -414,7 +417,8 @@ exports.createUtente = async (req, res, next) => {
                                     //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
                                     });
                                     return res.status(422).json({
-                                        message: 'Errore insert portafoglio'
+                                        text: "mpossibile creare portafoglio dell'utente",
+                                        err : err
                                     });
                                 }
                                 var idInsertPortafoglio = result.insertId;
@@ -432,7 +436,8 @@ exports.createUtente = async (req, res, next) => {
                                         //  conn.execute('DELETE FROM portafoglio WHERE idutente = ?', [idInsertUtente]);
                                         });
                                         return res.status(422).json({
-                                            message: 'Errore insert stile di guida'
+                                            text: "impossibile creare lo stile di guida dell'utente",
+                                            err : err
                                         });
                                     }
                                     var idInsertStileGuida = result.insertId;
@@ -444,7 +449,8 @@ exports.createUtente = async (req, res, next) => {
                                                 console.log("error iscrizione a gamifiedDriving", err);
                                             });
                                             return res.status(422).json({
-                                                message: 'Errore insert statistichegamification'
+                                                text: "impossibile inserire l'utente ",
+                                                err : err
                                             });
                                         }
                                         var idInsertStileGuida = result.insertId;
@@ -454,8 +460,9 @@ exports.createUtente = async (req, res, next) => {
                                         conn.commit((err) => {
                                             if (err) {
                                                 conn.rollback((err) => {
-                                                    return res.status(422).json({
-                                                        message: 'Impossibile effettuare il commit. Registrazione fallita!'
+                                                    return res.status(401).json({
+                                                        text: "impossibile procedere con la registrazione",
+                                                        err : err
                                                     });
                                                 });
                                             }
@@ -484,7 +491,8 @@ exports.createUtente = async (req, res, next) => {
             console.log("chiudo connessione");
             conn.end();
             return res.status(401).json({
-                message: err,
+                text: "impossibile completare la registrazione",
+                err : err
             });
             console.log(err);
         }
