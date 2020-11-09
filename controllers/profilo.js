@@ -257,11 +257,10 @@ exports.getClassificaGlobale = async (req,res,next) => {
         classifica = rows;
     }
     catch(err){
-       res.status(401).json({
-           message : 'impossibile ottenere la classifica generale',
-           mess : err,
-           db : "process.env.DATABASE_NAME"
-       })
+        res.status(401).json({
+            text : 'impossibile ottenere la classifica globale',
+            err : err
+        });
     }
 
     res.status(201).json({
@@ -340,7 +339,7 @@ exports.getClassificaFacebook = async (req,res,next) => {
 
     result.forEach( async (friend) => {
         var promise = new Promise( async function(resolve, reject) {
-        console.log("QQ",friend[0][0]);
+        //console.log("QQ",friend[0][0]);
        // friendsUtente.push(friend[0][0]);
 
 
