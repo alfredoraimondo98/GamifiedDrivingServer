@@ -59,15 +59,17 @@ exports.getProfilo = async (req,res,next) => {
    let position;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM heroku_344b7c2e1e3b45f0.utente JOIN heroku_344b7c2e1e3b45f0.portafoglio 
-                                                ON heroku_344b7c2e1e3b45f0.utente.id_utente = heroku_344b7c2e1e3b45f0.portafoglio.id_utente 
+                                                FROM heroku_344b7c2e1e3b45f.utente JOIN heroku_344b7c2e1e3b45f.portafoglio 
+                                                ON heroku_344b7c2e1e3b45f.utente.id_utente = heroku_344b7c2e1e3b45f.portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
                                                 `);
         classificaGlobale = rows;
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile ottenere la classifica generale'
+            message : 'impossibile ottenere la classifica generale',
+            db : process.env.DATABASE_NAME
+
         })
     } 
     classificaGlobale.forEach( (user) => {
