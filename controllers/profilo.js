@@ -299,7 +299,10 @@ exports.getClassificaLocale = async (req,res,next) => {
         classifica = rows;
     }
     catch(err){
-       res.send('impossibile ottenere la classifica locale');
+        res.status(401).json({
+            text : 'impossibile ottenere la classifica locale',
+            err : err
+        });
     }
 
     res.status(201).json({
