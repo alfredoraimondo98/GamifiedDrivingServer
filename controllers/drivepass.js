@@ -18,7 +18,8 @@ exports.getDrivepass = async (req,res,next) => {
     }
     catch(err){
         res.status(401).json({
-            message : err
+            text : "impossibile accedere al drivepass",
+            err : err
         })
     }
 
