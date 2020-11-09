@@ -300,9 +300,7 @@ exports.getClassificaLocale = async (req,res,next) => {
         classifica = rows;
     }
     catch(err){
-       res.status(401).json({
-           message : 'impossibile ottenere la classifica generale'
-       })
+       res.send('impossibile ottenere la classifica locale');
     }
 
     res.status(201).json({
