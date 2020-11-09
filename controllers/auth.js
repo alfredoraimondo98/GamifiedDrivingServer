@@ -658,9 +658,9 @@ async function getParcheggioByIdGarage(idGarage){
     let parcheggio;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM gamifieddrivingdb.parcheggia JOIN gamifieddrivingdb.auto 
-                                                ON gamifieddrivingdb.parcheggia.id_auto = gamifieddrivingdb.auto.id_auto 
-                                                WHERE gamifieddrivingdb.parcheggia.id_garage = ?`, [idGarage]
+                                                FROM heroku_344b7c2e1e3b45f.parcheggia JOIN heroku_344b7c2e1e3b45f.auto 
+                                                ON heroku_344b7c2e1e3b45f.parcheggia.id_auto = heroku_344b7c2e1e3b45f.auto.id_auto 
+                                                WHERE heroku_344b7c2e1e3b45f.parcheggia.id_garage = ?`, [idGarage]
                                             );
                                             
         parcheggio = rows;
