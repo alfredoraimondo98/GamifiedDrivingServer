@@ -11,10 +11,10 @@ module.exports = {
     getCostanteCrescita: "SELECT costante_crescita FROM stilediguida WHERE id_utente = ?",
 
 
-    getParcheggioByIdGarage: `SELECT gamifieddrivingdb.auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
-                                FROM gamifieddrivingdb.parcheggia JOIN gamifieddrivingdb.auto 
-                                ON gamifieddrivingdb.parcheggia.id_auto  = gamifieddrivingdb.auto.id_auto  
-                                WHERE gamifieddrivingdb.parcheggia.id_garage = ?`,
+    getParcheggioByIdGarage: `SELECT ${process.env.DATABASE_NAME}.auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
+                                FROM ${process.env.DATABASE_NAME}.parcheggia JOIN ${process.env.DATABASE_NAME}.auto 
+                                ON ${process.env.DATABASE_NAME}.parcheggia.id_auto  = ${process.env.DATABASE_NAME}.auto.id_auto  
+                                WHERE ${process.env.DATABASE_NAME}.parcheggia.id_garage = ?`,
 
 
     getDrivePassByStagione: 'SELECT * FROM drivepass WHERE stagione = ?',

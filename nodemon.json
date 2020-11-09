@@ -1,5 +1,6 @@
 {
     "env" : {
-        "NODE_ENV" : "develop"
+        "NODE_ENV" : "develop",
+        "DATABASE_NAME" : "heroku_344b7c2e1e3b45f0"
     }
 }

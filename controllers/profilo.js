@@ -59,8 +59,8 @@ exports.getProfilo = async (req,res,next) => {
    let position;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
-                                                ON gamifieddrivingdb.utente.id_utente = gamifieddrivingdb.portafoglio.id_utente 
+                                                FROM ${process.env.DATABASE_NAME}.utente JOIN ${process.env.DATABASE_NAME}.portafoglio 
+                                                ON ${process.env.DATABASE_NAME}.utente.id_utente = ${process.env.DATABASE_NAME}.portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
                                                 `);
         classificaGlobale = rows;
@@ -248,8 +248,8 @@ exports.getClassificaGlobale = async (req,res,next) => {
     let classifica;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM gamifieddrivingdb.utente JOIN gamifieddrivingdb.portafoglio 
-                                                ON gamifieddrivingdb.utente.id_utente = gamifieddrivingdb.portafoglio.id_utente 
+                                                FROM ${process.env.DATABASE_NAME}.utente JOIN ${process.env.DATABASE_NAME}.portafoglio 
+                                                ON ${process.env.DATABASE_NAME}.utente.id_utente = ${process.env.DATABASE_NAME}.portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
                                                 `);
         classifica = rows;
