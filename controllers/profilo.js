@@ -260,7 +260,7 @@ exports.getClassificaGlobale = async (req,res,next) => {
        res.status(401).json({
            message : 'impossibile ottenere la classifica generale',
            mess : err,
-           db : process.env.DATABASE_NAME
+           db : "process.env.DATABASE_NAME"
        })
     }
 
