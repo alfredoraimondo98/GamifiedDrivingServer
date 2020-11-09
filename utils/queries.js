@@ -11,10 +11,10 @@ module.exports = {
     getCostanteCrescita: "SELECT costante_crescita FROM stilediguida WHERE id_utente = ?",
 
 
-    getParcheggioByIdGarage: `SELECT ${process.env.DATABASE_NAME}.auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
-                                FROM ${process.env.DATABASE_NAME}.parcheggia JOIN ${process.env.DATABASE_NAME}.auto 
-                                ON ${process.env.DATABASE_NAME}.parcheggia.id_auto  = ${process.env.DATABASE_NAME}.auto.id_auto  
-                                WHERE ${process.env.DATABASE_NAME}.parcheggia.id_garage = ?`,
+    getParcheggioByIdGarage: `SELECT heroku_344b7c2e1e3b45f.auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
+                                FROM heroku_344b7c2e1e3b45f.parcheggia JOIN heroku_344b7c2e1e3b45f.auto 
+                                ON heroku_344b7c2e1e3b45f.parcheggia.id_auto  = heroku_344b7c2e1e3b45f.auto.id_auto  
+                                WHERE heroku_344b7c2e1e3b45f.parcheggia.id_garage = ?`,
 
 
     getDrivePassByStagione: 'SELECT * FROM drivepass WHERE stagione = ?',

@@ -43,6 +43,6 @@ app.use('/sessione', sessioneRoutes);
 
  
 
-//console.log(process.env.NODE_ENV);
+//console.log(process.env.DATABASE_NAME);
 
 app.listen(process.env.PORT || 35540, () => console.log("server start on "+ process.env.PORT));
