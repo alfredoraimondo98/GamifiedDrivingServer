@@ -59,8 +59,8 @@ exports.getProfilo = async (req,res,next) => {
    let position;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM ${process.env.DATABASE_NAME}.utente JOIN ${process.env.DATABASE_NAME}.portafoglio 
-                                                ON ${process.env.DATABASE_NAME}.utente.id_utente = ${process.env.DATABASE_NAME}.portafoglio.id_utente 
+                                                FROM heroku_344b7c2e1e3b45f0.utente JOIN heroku_344b7c2e1e3b45f0.portafoglio 
+                                                ON heroku_344b7c2e1e3b45f0.utente.id_utente = heroku_344b7c2e1e3b45f0.portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
                                                 `);
         classificaGlobale = rows;
