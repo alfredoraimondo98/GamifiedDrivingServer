@@ -67,8 +67,8 @@ exports.getProfilo = async (req,res,next) => {
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile ottenere la classifica generale',
-            db : process.env.DATABASE_NAME
+            message : err,
+            
 
         })
     } 
