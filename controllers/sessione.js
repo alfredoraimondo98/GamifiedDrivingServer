@@ -321,6 +321,7 @@ exports.getPosizione = (req,res,next) => {
             let maxspeed = body.elements[0].tags.maxspeed;  //velocità max sulla strada
             let name = body.elements[0].tags.name;  //nome strada
             let access = body.elements[0].tags.access; //access strada
+            let stop = ""; //stop
             console.log(body);
 
             //Verifica la disponibilità dei dati, altrimenti setta i valori di default
@@ -340,7 +341,7 @@ exports.getPosizione = (req,res,next) => {
             }
             if(body.elements[0].tags.access){
                 if(access === 'no' || access ==='private'){
-                    access = "Zona Traffico Limitato"
+                    access = "ztl"
                 }
                 else{
                     access = ""
@@ -355,7 +356,8 @@ exports.getPosizione = (req,res,next) => {
                name : name,
                speed : +speedObject.speed,
                distance : +speedObject.distance,
-               access : access
+               ztl : access,
+               stop : stop
              // all: body,
              // dati:  body.elements[0].tags
             })

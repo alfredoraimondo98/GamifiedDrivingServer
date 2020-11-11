@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries')
 
-queries.SELECT
+
 
 exports.buyWithTickets = async (req,res,next) => {
     idUtente = req.body.id_utente;
@@ -16,15 +16,17 @@ exports.buyWithTickets = async (req,res,next) => {
     
     try{   //Verifica disponibilità tickets
         updateTicket = await verificaTickets(idUtente, costo);
-        if(!updateTicket){
+        if(updateTicket === false){
             return res.status(401).json({
-                message: 'Tickets non sufficienti'
+                text: 'Tickets non sufficienti',
+                err : err
             })
         }
     }
     catch(err){
         res.status(401).json({
-            message : 'impossibile verificare i tickets disponibili' + err
+            text : 'impossibile verificare i tickets disponibili',
+            err : err
         })
     }
 
@@ -42,7 +44,7 @@ exports.buyWithTickets = async (req,res,next) => {
         conn.beginTransaction(async err => {
             if (err) {
                 console.log(err);
-                return res.status(422).json({
+                return res.status(401).json({
                     text: "impossibile procedere all'acquisto",
                     err : err
                 });
@@ -488,8 +490,9 @@ exports.buyAuto = async (req,res,next) => {
         conn.beginTransaction(async err => {
             if (err) {
                 console.log(err);
-                res.status(422).json({
-                    message: 'Impossibile avviare la procedura (transaction failed)'
+                res.status(401).json({
+                    text: ' impossibile avviare la procedura di acquisto',
+                    err : err
                 });
             }
 
@@ -500,8 +503,9 @@ exports.buyAuto = async (req,res,next) => {
                     conn.rollback((err) => {
                         console.log("inserimento auto : ", err);
                     });
-                    res.status(422).json({
-                        message: 'Errore insert auto'
+                    res.status(401).json({
+                        text: 'Errore insert auto',
+                        err : err
                     });
                 }
 
@@ -512,7 +516,8 @@ exports.buyAuto = async (req,res,next) => {
                             console.log("Update portafoglio : ", err);
                         });
                         res.status(422).json({
-                            message: 'Errore update portafoglio'
+                            text: 'Errore update portafoglio',
+                            err : err
                         });
                     }
 
@@ -521,8 +526,9 @@ exports.buyAuto = async (req,res,next) => {
                     conn.commit((err) => {
                         if (err) {
                             conn.rollback((err) => {
-                                res.status(422).json({
-                                    message: 'Impossibile effettuare il commit. Acquisto fallita!'
+                                res.status(401).json({
+                                    text: " impossibile completare l'acquisto: Acquisto fallita!",
+                                    err : err
                                 });
                             });
                         }
