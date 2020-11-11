@@ -312,16 +312,19 @@ exports.getPosizione = (req,res,next) => {
 
 
     var url = `http://overpass-api.de/api/interpreter?data=[out:json][timeout:25];%20(%20way(around:${around},${latB},${lonB});%20);%20out%20body;%20%3E;%20out%20skel%20qt;`
+    
 
     request({ url: url, json: true}, (error, response, body) => {
         if (!error && response.statusCode === 200) {
             console.log(body.elements[0].tags) // Print the json response
 
+            let idWay = body.elements[0].id; //Id nodo strada
             let highway = body.elements[0].tags.highway; //Tipo strada
             let maxspeed = body.elements[0].tags.maxspeed;  //velocità max sulla strada
             let name = body.elements[0].tags.name;  //nome strada
             let access = body.elements[0].tags.access; //access strada
             let stop = ""; //stop
+
             console.log(body);
 
             //Verifica la disponibilità dei dati, altrimenti setta i valori di default
@@ -347,6 +350,19 @@ exports.getPosizione = (req,res,next) => {
                     access = ""
                 }
             }
+
+            //url query id node per verificare se sono presenti elementi stop.
+            var urlIdWay = `http://overpass-api.de/api/interpreter?data=[out:json][timeout:25];way(${idWay})(._;>;);%20out%20body;%20%3E;%20out%20skel%20qt;`
+
+            request({ url: urlIdWay, json: true}, (error, response, body) => {
+                if (!error && response.statusCode === 200) {
+                    body.elements.forEach( (item) => {
+                        if(item.tags.highway == 'give_way'){
+                            stop = "stop";
+                        }
+                    })
+                }
+            });
 
             console.log("Acc", access);
 
