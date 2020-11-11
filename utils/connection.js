@@ -1,11 +1,11 @@
 const mysql = require('mysql2');
 
-/* const conn = mysql.createConnection({
+ /*  const conn = mysql.createConnection({
     host: 'localhost',
     database: 'gamifieddrivingdb',
     user: 'root',
     password: 'admin'
-}); */
+});  */
 
 const conn = mysql.createConnection({
   host: 'eu-cdbr-west-03.cleardb.net',

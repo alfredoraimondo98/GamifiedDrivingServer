@@ -322,8 +322,8 @@ exports.createUtente = async (req, res, next) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
-            return res.json({
-                message: 'Errore input Parametri',
+            return res.status(401).json({
+                text: 'Errore input Parametri',
                 error: errors.array()
             });
         }
@@ -355,20 +355,21 @@ exports.createUtente = async (req, res, next) => {
         conn.beginTransaction(err => {
             if (err) {
                 console.log(err);
-                return res.status(422).json({
-                    message: 'Impossibile avviare la procedura di regitrazione (transaction failed)'
+                return res.status(401).json({
+                    text: 'Impossibile avviare la procedura di regitrazione (transaction failed)',
+                    err : err
                 });
             }
 
-
+                   
             
             conn.query(queries.createUtente, [nome, cognome, email, hashedPassword, citta, tipo_accesso, idFacebook], (err, result) => {
                 if (err) {
 
                     conn.rollback((err) => {
-                        console.log("Utenteerror", err);
+                        console.log("Utente error", err);
                     });
-                    return res.status(422).json({
+                    return res.status(401).json({
                         text: 'impossibile inserire un nuovo utente',
                         err : err
                     });
@@ -381,10 +382,10 @@ exports.createUtente = async (req, res, next) => {
                         if (err) {
                             conn.rollback((err) => {
 
-                                console.log("Garageerror", err);
+                                console.log("Garage error", err);
                                 //conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
                             });
-                            return res.status(422).json({
+                            return res.status(401).json({
                                 text: 'impossibile creare un nuovo garage',
                                 err : err
                             });
@@ -399,7 +400,7 @@ exports.createUtente = async (req, res, next) => {
                                 conn.rollback((err) => {
                                     console.log("Insert auto predefinita error", err);
                                 });
-                                return res.status(422).json({
+                                return res.status(401).json({
                                     text: 'impossibile settare auto predefinita',
                                     err : err
                                 });  
@@ -412,11 +413,11 @@ exports.createUtente = async (req, res, next) => {
                                 if (err) {
                                     conn.rollback((err) => {
 
-                                        console.log("Garageerror", err);
+                                        console.log("portafoglio err", err);
                                     // conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
                                     //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
                                     });
-                                    return res.status(422).json({
+                                    return res.status(401).json({
                                         text: "mpossibile creare portafoglio dell'utente",
                                         err : err
                                     });
@@ -430,7 +431,7 @@ exports.createUtente = async (req, res, next) => {
                                     if (err) {
                                         conn.rollback((err) => {
 
-                                            console.log("Garageerror", err);
+                                            console.log("stile di guida err", err);
                                         //  conn.execute('DELETE FROM utente WHERE idutente = ?', [idInsertUtente]);
                                         //  conn.execute('DELETE FROM garage WHERE idutente = ?', [idInsertUtente]);
                                         //  conn.execute('DELETE FROM portafoglio WHERE idutente = ?', [idInsertUtente]);
@@ -446,9 +447,9 @@ exports.createUtente = async (req, res, next) => {
                                     conn.query(queries.createStatisticheGamification, [idInsertUtente, 1, 0], (err, result) => {
                                         if (err) {
                                             conn.rollback((err) => {
-                                                console.log("error iscrizione a gamifiedDriving", err);
+                                                console.log("error registrazione a gamifiedDriving", err);
                                             });
-                                            return res.status(422).json({
+                                            return res.status(401).json({
                                                 text: "impossibile inserire l'utente ",
                                                 err : err
                                             });
@@ -508,6 +509,11 @@ exports.checkEmail = async (req, res, next) => {
                 message : false
             })
         }
+        else{
+            res.status(201).json({
+                message : true
+            })
+        }
     }
     catch(err){
         console.log(err);
@@ -515,10 +521,6 @@ exports.checkEmail = async (req, res, next) => {
             message : false
         }) 
     }
-
-    res.status(201).json({
-        message : true
-    })
 }
 
 

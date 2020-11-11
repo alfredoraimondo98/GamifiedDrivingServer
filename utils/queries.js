@@ -30,8 +30,8 @@ module.exports = {
     getAvatarById: "SELECT * FROM avatar WHERE id_avatar = ? ",
 
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
-    createGarage: "INSERT INTO garage (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
-    createPortafoglio: "INSERT INTO portafoglio (id_utente) values (?)",
+    createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
+    createGarage: "INSERT INTO garage (id_utente) values (?)",
     createStileDiGuida: "INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)",
     createStatisticheGamification: "INSERT INTO statistichegamification (id_utente, id_app, livello) values (?,?,?)",
     createSession: "INSERT INTO sessione (durata, km_percorsi, bonus, malus, id_utente) VALUES (?,?,?,?,?)",

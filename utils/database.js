@@ -1,11 +1,11 @@
 const mysql = require('mysql2');
 
-/* const pool = mysql.createPool({
+/*  const pool = mysql.createPool({
     host: 'localhost',
     database: 'gamifieddrivingdb',
     user: 'root',
     password: 'admin'
-}); */
+});   */
 
 const pool = mysql.createPool({
     host: 'eu-cdbr-west-03.cleardb.net',
