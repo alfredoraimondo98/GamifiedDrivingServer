@@ -225,6 +225,7 @@ exports.updateSession = async (req,res,next) => {
     //verifica se è stata mantenuta la velocità costante per 10 secondi riceve un punto bonus
     if(ctr_velocita_costante >= 10 ){
         bonus = bonus + 1;
+        ctr_velocita_costante = 0; //se ctr_velocita_costante raggiunge 10 viene resetteta a zero
     }
 
 
@@ -238,7 +239,8 @@ exports.updateSession = async (req,res,next) => {
     }
 
     res.status(201).json({
-        message : "Update sessione"
+        message : "Update sessione",
+        ctr_velocita_costante : +ctr_velocita_costante
     })
 }
 
@@ -316,16 +318,10 @@ function velocitaCostante(speed, ctr_velocita_costante){
     }
 
     //Calcola range
-    const range_velocita_costante = 5;
     let velMin = velocita[0];//velocità minima iniziale
     let velMax = velocita[0];//velocità massima iniziale
-    let velMedia = 0;
 
-    //Calcola velocità media
-    velocita.forEach( (item) => {
-        velMedia = velMedia + item;
-    })
-    velMedia = velMedia / range_velocita_costante;
+
 
     //Calcola velocità minima/massima
     velocita.forEach( (item) =>{
