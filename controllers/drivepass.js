@@ -4,7 +4,7 @@ const { validationResult } = require('express-validator');
 const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries');
-
+const sessioneController = require('./sessione');
 
 exports.getDrivepass = async (req,res,next) => {
     let stagione = 1;
@@ -120,4 +120,112 @@ exports.getDrivepass = async (req,res,next) => {
         drivePass : drivePass
     })
    
+
+}
+
+/**
+ * Punti del range livello
+ * @param {*} livello 
+ */
+function rangeLivello(livello, costante_crescita){
+    if(livello >= 1 && livello <= 15){
+        return 10 * costante_crescita;
+    }
+    if(livello >= 16 && livello <= 30){
+        return 15 * costante_crescita;
+    }
+    if(livello >= 31 && livello <= 49){
+        return 20 * costante_crescita;
+    }
+    if(livello >= 50 && livello <= 65){
+        return 25 * costante_crescita;
+    }
+    if(livello >= 66 && livello <= 79){
+        return 30 * costante_crescita;
+    }
+    if(livello >= 80 && livello <= 95){
+        return 35 * costante_crescita;
+    }
+    if(livello >= 96 && livello <= 98){
+        return 38 * costante_crescita;
+    }
+    if(livello >= 99 && livello <= 100){
+        return 40 * costante_crescita;
+    }
+}
+
+/**
+ * Definisce il nuovo livello drivepass (e aggiornamento punti e livello)
+ * @param {*} livello 
+ * @param {*} punti 
+ * @param {*} puntiDrivePass 
+ */
+function upLevel(livello, puntiDrivePass, costante_crescita){
+
+    //Recupera quanti punti sono attualmente posseduti sul livello attuale
+    for(let i=1; i<livello; i++){ 
+        puntiDrivePass = puntiDrivePass - rangeLivello(i, costante_crescita); //Scala i punti già completati nei livelli precedenti del drivepass
+    }
+
+    console.log("puntiDrivePass", puntiDrivePass);
+
+
+    let rangeCurrentLivello = rangeLivello(livello, costante_crescita); //recupera il range del livello attuale
+
+    while(puntiDrivePass >= rangeCurrentLivello){ //Verifica se i punti attuali permettono di completare il range del livello attuale
+        console.log("puntiDrivePass", puntiDrivePass, livello);
+        puntiDrivePass = puntiDrivePass - rangeCurrentLivello; //decrementa i punti del rangeLivello attuale ai puntiDrivePass (PUNTI LIVELLO ATTUALE)
+        livello ++; //Incrementa il livello (Livello compleato)
+    }
+    console.log("puntiDrivePass", puntiDrivePass);
+
+
+    console.log("livello", livello);
+
+
+    return {
+        punti_livello_attuale : puntiDrivePass, //Punti su  livello attuale
+        livello : livello //Nuovo livello attuale
+    }
+
+}
+
+exports.getCurrentLevel = async(req,res,next) => {
+    let idUtente = req.body.id_utente;
+    let costante_crescita;
+
+    //recupera punti drive pass e livello
+    try{
+        const[row, field]= await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
+        puntiDrivePass = row[0].punti_drivepass;
+        livello = row[0].livello;
+    }
+    catch(err){
+        res.status(401).json({
+            text : "impossibile recuperare il portafoglio dell'utente",
+            error : err
+        })
+    }
+
+    try{
+        const[row, field] = await db.execute(queries.getCostanteCrescita, [idUtente]);
+        costante_crescita = row[0].costante_crescita;
+    }
+    catch(err){
+        res.status(401).json({
+            text : "impossibile recuperare la costante crescita dell'utente",
+            err : err
+        })
+    }
+
+    var drivePass = upLevel(livello, puntiDrivePass, costante_crescita);
+
+    //Calcolo range progress bar livello
+    let range_livello_attuale = drivePass.punti_livello_attuale / rangeLivello(drivePass.livello, costante_crescita)
+
+    res.status(201).json({
+        //livello = drivePass.livello,
+        //punti_livello_attuale = drivePass.punti_livello_attuale
+        range_livello_attuale : range_livello_attuale
+    })
 }

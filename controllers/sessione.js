@@ -71,7 +71,6 @@ function upLevel(livello, punti, puntiDrivePass){
         puntiGuadagnati : puntiDrivePass, //Punti guadagnati su nuovo livello attuale
         nuovoLivello : livello //Nuovo livello attuale
     }
-
 }
 
 /**
