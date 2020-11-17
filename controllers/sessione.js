@@ -183,6 +183,7 @@ exports.startSession = async (req,res,next) => {
  * @param {*} next 
  */
 exports.updateSession = async (req,res,next) => {
+    let ctr_velocita_costante = req.body.ctr_velocita_costante;
     let id_sessione = req.body.id_sessione;
     let id_utente = req.body.id_utente;
     let km_percorsi = req.body.distance;
@@ -220,6 +221,12 @@ exports.updateSession = async (req,res,next) => {
 
     //console.log("TEMPO OK, ", timeGoodDriving);
     point = (point * health)/100; //Punti (corrisponde a bonus del db)
+
+    //verifica se è stata mantenuta la velocità costante per 10 secondi riceve un punto bonus
+    if(ctr_velocita_costante >= 10 ){
+        bonus = bonus + 1;
+    }
+
 
     try{
         const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, point, malus, id_sessione, id_utente ]);
@@ -277,6 +284,9 @@ function getMySpeed(latA, lonA, latB, lonB){
 
     console.log("velocità ", speed.toFixed(0)+" km/h" ) //in km/h
 
+    if(speed == null){
+        speed = 0;
+    }
 
     return {
         speed: speed.toFixed(0),
@@ -284,7 +294,65 @@ function getMySpeed(latA, lonA, latB, lonB){
     }
 }
 
+/**
+ * Verifica velocità costante
+ * @param {*} speed 
+ * @param {*} ctr_velocita_costante 
+ */
+function velocitaCostante(speed, ctr_velocita_costante){
+    let velocita = [];
+    if(speed.length < 5){ //Se l'array di speed contiene meno di 5 elementi considera tutti gli elementi presenti
+        speed.forEach( (item) => {
+            velocita.push(item);
+        })
+    }
+    else{
+        let j = speed.length - 1; //indice j corrispondente all'ultimo elemento dell'array Speed
+    
+        for(let i=0 ; i < 5; i++){ //preleva 5 elementi
+            velocita.push(speed[j]); //inserisce gli ultimi 5 elementi di speed in velocita
+            j--; 
+        }
+    }
 
+    //Calcola range
+    const range_velocita_costante = 5;
+    let velMin = velocita[0];//velocità minima iniziale
+    let velMax = velocita[0];//velocità massima iniziale
+    let velMedia = 0;
+
+    //Calcola velocità media
+    velocita.forEach( (item) => {
+        velMedia = velMedia + item;
+    })
+    velMedia = velMedia / range_velocita_costante;
+
+    //Calcola velocità minima/massima
+    velocita.forEach( (item) =>{
+        if(item < velMin){ //Calcolo minimo
+            velMin = item;
+        }
+        if(item > velMax){ //calcolo massimo
+            velMax = item; 
+        }
+    })
+
+    //Verifica se la velocità mantenuta risulta costante
+    if( (velMax - velMin) > 20 ){
+        flagVelocitaCostante = false; //velocità costante non rispettata
+        ctr_velocita_costante = 0; //Resetta contatore velocità costante
+    }
+    else{
+        flagVelocitaCostante = true;
+        ctr_velocita_costante = ctr_velocita_costante + 1;
+    }
+
+    return {
+        flagVelocitaCostante : flagVelocitaCostante,
+        ctr_velocita_costante : ctr_velocita_costante
+    }
+    
+}
 
 /**
  * Recupera posizione attuale e informazioni relative alla velocità
@@ -299,11 +367,13 @@ exports.getPosizione = (req,res,next) => {
     var lonA = req.body.lonA; //longitudine A
     var latB = req.body.latB; //latitudine A
     var lonB = req.body.lonB; //longitudine A
+    var speed = req.body.speed; //Array delle velocità dell'utente
+    var ctr_velocita_costante = req.body.ctr_velocita_costante; //costante velocità costante
 
     var around = '50.0' //precisione di calcolo della posizione (es: 50 metri vicino alle coordinate)
-   
     
-  
+    
+   var velocitaCostanteResult = velocitaCostante(speed, ctr_velocita_costante);
 
 //Test velocità  
     var speedObject = getMySpeed(latA, lonA, latB, lonB);
@@ -365,7 +435,7 @@ exports.getPosizione = (req,res,next) => {
             });
 
             console.log("Acc", access);
-
+            console.log("VelocitaResponse", velocitaCostanteResult)
             res.status(201).json({
                hyghway : highway,
                maxspeed : +maxspeed,
@@ -373,7 +443,9 @@ exports.getPosizione = (req,res,next) => {
                speed : +speedObject.speed,
                distance : +speedObject.distance,
                ztl : access,
-               stop : stop
+               stop : stop,
+               velocita_costante : velocitaCostanteResult.flagVelocitaCostante,
+               ctr_velocita_costante : velocitaCostanteResult.ctr_velocita_costante
              // all: body,
              // dati:  body.elements[0].tags
             })
