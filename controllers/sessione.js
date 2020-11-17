@@ -9,30 +9,30 @@ const queries = require('../utils/queries')
  * Punti del range livello
  * @param {*} livello 
  */
-function rangeLivello(livello){
+function rangeLivello(livello, costante_crescita){
     if(livello >= 1 && livello <= 15){
-        return 10
+        return 10 * costante_crescita;
     }
     if(livello >= 16 && livello <= 30){
-        return 15
+        return 15 * costante_crescita;
     }
     if(livello >= 31 && livello <= 49){
-        return 20
+        return 20 * costante_crescita;
     }
     if(livello >= 50 && livello <= 65){
-        return 25
+        return 25 * costante_crescita;
     }
     if(livello >= 66 && livello <= 79){
-        return 30
+        return 30 * costante_crescita;
     }
     if(livello >= 80 && livello <= 95){
-        return 35
+        return 35 * costante_crescita;
     }
     if(livello >= 96 && livello <= 98){
-        return 38
+        return 38 * costante_crescita;
     }
     if(livello >= 99 && livello <= 100){
-        return 40
+        return 40 * costante_crescita;
     }
 }
 
@@ -42,11 +42,11 @@ function rangeLivello(livello){
  * @param {*} punti 
  * @param {*} puntiDrivePass 
  */
-function upLevel(livello, punti, puntiDrivePass){
+function upLevel(livello, punti, puntiDrivePass, costante_crescita){
 
     //Recupera quanti punti sono attualmente posseduti sul livello attuale
     for(let i=1; i<livello; i++){ 
-        puntiDrivePass = puntiDrivePass - rangeLivello(i); //Scala i punti già completati nei livelli precedenti del drivepass
+        puntiDrivePass = puntiDrivePass - rangeLivello(i, costante_crescita); //Scala i punti già completati nei livelli precedenti del drivepass
     }
 
     console.log("puntiDrivePass", puntiDrivePass);
@@ -54,7 +54,7 @@ function upLevel(livello, punti, puntiDrivePass){
     puntiDrivePass = puntiDrivePass + punti; //somma i punti di bonus al drive pass
     console.log("puntiDrivePass", puntiDrivePass);
 
-    let rangeCurrentLivello = rangeLivello(livello); //recupera il range del livello attuale
+    let rangeCurrentLivello = rangeLivello(livello, costante_crescita); //recupera il range del livello attuale
 
     while(puntiDrivePass >= rangeCurrentLivello){ //Verifica se i punti attuali permettono di completare il range del livello attuale
         console.log("puntiDrivePass", puntiDrivePass, livello);
@@ -127,7 +127,7 @@ exports.endSession = async (req,res,next) =>{
     console.log("costante",costanteCrescita)
     punti = punti * +costanteCrescita; //Normalizza punti guardagnati sulla base della costante crescita
 
-    let newLevel = upLevel(+livello, +punti, +puntiDrivePass); //Aggiorna livello
+    let newLevel = upLevel(+livello, +punti, +puntiDrivePass, costante_crescita); //Aggiorna livello
 
     newPuntiDrivePass = puntiDrivePass + punti; //nuovi punti drive pass
 
