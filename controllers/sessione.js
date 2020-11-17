@@ -116,7 +116,8 @@ exports.endSession = async (req,res,next) =>{
     //recupera costante di crescita utente
     try{
         const[row, field]= await db.execute(queries.getCostanteCrescita, [idUtente]);
-        costanteCrescita = row[0].costante_crescita;
+        costanteCrescita = row[0];
+        console.log("costante e row", costanteCrescita, row[0])
     }
     catch(err){
         res.status(401).json({
