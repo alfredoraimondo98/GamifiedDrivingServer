@@ -115,7 +115,8 @@ exports.getDrivepass = async (req,res,next) => {
     });
 
     
-     
+    
+
     res.status(201).json({
         drivePass : drivePass
     })
@@ -207,6 +208,7 @@ exports.getCurrentLevel = async(req,res,next) => {
         })
     }
 
+    //Recupera costante crescita
     try{
         const[row, field] = await db.execute(queries.getCostanteCrescita, [idUtente]);
         costante_crescita = row[0].costante_crescita;

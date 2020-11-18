@@ -29,14 +29,16 @@ module.exports = {
     getAllAvatar: "SELECT * FROM avatar",
     getAvatarById: "SELECT * FROM avatar WHERE id_avatar = ? ",
 
+    getInfrazioni: "SELECT * FROM infrazione WHERE id_sessione = ? AND id_utente = ? ORDER BY id_infrazione",
+
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
     createGarage: "INSERT INTO garage (id_utente) values (?)",
     createStileDiGuida: "INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)",
     createStatisticheGamification: "INSERT INTO statistichegamification (id_utente, id_app, livello) values (?,?,?)",
-    createSession: "INSERT INTO sessione (durata, km_percorsi, bonus, malus, id_utente) VALUES (?,?,?,?,?)",
+    createSession: "INSERT INTO sessione (durata, km_percorsi, bonus, malus, id_utente, data) VALUES (?,?,?,?,?, ?)",
 
-
+    createInfrazione: "INSERT INTO infrazione (id_sessione, id_utente, timer, tipo, descrizione) VALUES (?,?,?,?,?)",
 
     insertIntoParcheggio: "INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
 

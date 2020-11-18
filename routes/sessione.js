@@ -12,4 +12,7 @@ router.post('/getPosizione', sessioneController.getPosizione);
 
 router.post('/getAutoPredefinita', sessioneController.getAutoPredefinita);
 
+router.post('/setInfrazione', sessioneController.setInfrazione);
+router.post('/getInfrazioni', sessioneController.getInfrazioni);
+ 
 module.exports = router;

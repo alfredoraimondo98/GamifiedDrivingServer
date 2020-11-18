@@ -116,8 +116,7 @@ exports.endSession = async (req,res,next) =>{
     //recupera costante di crescita utente
     try{
         const[row, field]= await db.execute(queries.getCostanteCrescita, [idUtente]);
-        costanteCrescita = row[0].BinaryRow.costante_crescita;
-        console.log("costante e row", costanteCrescita, row[0])
+        costanteCrescita = row[0].costante_crescita ; //******************** Error costante undefined */
     }
     catch(err){
         res.status(401).json({
@@ -125,10 +124,9 @@ exports.endSession = async (req,res,next) =>{
         })
     }
 
-    console.log("costante",costanteCrescita)
     punti = punti * +costanteCrescita; //Normalizza punti guardagnati sulla base della costante crescita
 
-    let newLevel = upLevel(+livello, +punti, +puntiDrivePass, costante_crescita); //Aggiorna livello
+    let newLevel = upLevel(+livello, +punti, +puntiDrivePass, costanteCrescita); //Aggiorna livello
 
     newPuntiDrivePass = puntiDrivePass + punti; //nuovi punti drive pass
 
@@ -162,8 +160,9 @@ exports.endSession = async (req,res,next) =>{
  */
 exports.startSession = async (req,res,next) => {
     let id_utente = req.body.id_utente;
+  
 
-    db.execute(queries.createSession, [0,0,0,0,id_utente])
+    db.execute(queries.createSession, [0,0,0,0,id_utente, new Date()])
     .then( (result) => {
         res.status(201).json({
             id_sessione : result[0].insertId
@@ -476,3 +475,65 @@ exports.getAutoPredefinita = async (req,res,next) => {
     })
 
 }
+
+
+exports.setInfrazione = async (req,res,next) => {
+    let idSessione = req.body.id_sessione;
+    let idUtente = req.body.id_utente;
+    let timer = req.body.timer;
+    let tipo = req.body.tipo;
+    let descrizione;
+
+    if(tipo == "limite di velocità"){
+        descrizione = "Hai superato il limite di velocità"
+    }
+    if(tipo == "velocità costante"){
+        descrizione = "Non hai mantenuto una velocità costante"
+    }
+ 
+
+    try{
+        await db.execute(queries.createInfrazione, [idSessione, idUtente, timer, tipo, descrizione])
+    }
+    catch(err){
+        res.status(401).json({
+            text : "non è stato possibile inserire l'infrazione",
+            err : err
+        })
+    }
+
+    res.status(201).json({
+        text : "infrazione salvata correttamente"
+    })
+}
+
+
+exports.getInfrazioni = async (req,res,next) => {
+    let idSessione = req.body.id_sessione;
+    let idUtente = req.body.id_utente;
+    let infrazioni = [];
+    
+    try{
+        const [rows, field] = await db.execute(queries.getInfrazioni, [idSessione, idUtente]);
+        
+        rows.forEach( (item) => {
+            infrazioni.push(item);
+        })
+
+        console.log(infrazioni)
+
+      
+    
+    }
+    catch(err){
+        res.status(401).json({
+            text : "non è stato possibile recuperare le infrazioni",
+            err : err
+        })
+    }
+
+ 
+    res.status(201).json({
+        infrazioni : infrazioni
+    })
+}   
