@@ -231,3 +231,140 @@ exports.getCurrentLevel = async(req,res,next) => {
         range_livello_attuale : range_livello_attuale
     })
 }
+
+/**
+ * Verifica se ci sono livelli (premi drivepass) da riscattare
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.verificaRiscatto = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+    let portafoglio;
+    let livelliDaRiscattare = [];
+
+    try{
+        const [row, field] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
+        portafoglio = row[0];
+    }
+    catch(err){
+        res.status(401).json({
+            text : "impossibile recuperare i dati del portafoglio",
+            err : err
+        })
+    }
+
+    if(portafoglio.livello-1 > portafoglio.livello_riscattato){ //Verifica i livelli da riscattare
+        for(let i = portafoglio.livello_riscattato+1 ; i < portafoglio.livello ; i++){
+            const [row, field] = await db.execute(queries.getDrivePassByLivello, [i]); 
+            livelliDaRiscattare.push(row[0]);//Salva livelli da riscattare
+        }
+    }
+    else{
+        livelliDaRiscattare = [];
+    }
+
+    res.status(201).json({
+        livelli_da_riscattare : livelliDaRiscattare
+    })
+}
+
+
+/**
+ * riscatta premio 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.riscattaLivello = async (req,res,next) => {
+    let idUtente = +req.body.id_utente;
+    let idGarage = +req.body.id_garage;
+    let livello = +req.body.livello;
+    let livello_riscattato = +req.body.livello_riscattato;
+    let livelliDaRiscattare = [];
+
+
+     if(livello-1 > livello_riscattato){ //Verifica i livelli da riscattare
+        for(let i = livello_riscattato+1 ; i < livello ; i++){
+            try{
+                const [row, field] = await db.execute(queries.getDrivePassByLivello, [i]); 
+                livelliDaRiscattare.push(row[0]);//Salva livelli da riscattare
+            }
+            catch(err){
+                res.status(401).json({
+                    text : 'impossibile procedere al riscatto',
+                    err : err
+                })
+            }
+
+        }
+    }
+    else{
+        livelliDaRiscattare = [];
+    }
+
+     //Riscatta ogni livello
+     var riscatto = 0;
+    await livelliDaRiscattare.forEach( async (item) => {
+        console.log("Sto riscattando ", item);
+        if(item.tipo_premio == 'acpoints'){
+            try{await db.execute(queries.incrementPointPortafoglioByIdUtente, [+item.premio, idUtente])}
+            catch(err){ 
+                res.status(401).json({
+                    text : "impossibile procedere al riscatto",
+                    err : err
+                })
+            }
+        }
+
+        if(item.tipo_premio == 'tickets'){
+            try{await db.execute(queries.incrementTicketPortafoglioByIdUtente, [+item.premio, idUtente])}
+            catch(err){ 
+                res.status(401).json({
+                    text : "impossibile procedere al riscatto",
+                    err : err
+                })
+            }
+        }
+
+        if(item.tipo_premio == 'auto'){
+            const [row, field] = await db.execute(queries.getItemParcheggia, [idGarage, +item.premio]);
+            console.log("AUTO ", row[0]);
+            if(!row[0]){ //Se l'auto non è già disponibile viene aggiunta all'utente
+                try{await db.execute(queries.insertIntoParcheggio, [idGarage, +item.premio, 1, 0])}
+                catch(err){ 
+                    res.status(401).json({
+                        text : "impossibile procedere al riscatto",
+                        err : err
+                    })
+                }
+            }
+        }
+
+        if(item.tipo_premio == 'avatar'){
+            const [row, field] = await db.execute(queries.getItemProfiloAvatar, [idGarage, +item.premio]);
+            console.log("AUTO ", row[0]);
+            if(!row[0]){ //Se l'auto non è già disponibile viene aggiunta all'utente
+                try{await db.execute(queries.insertIntoProfiloavatar, [idGarage, +item.premio, 1, 0])}
+                catch(err){ 
+                    res.status(401).json({
+                        text : "impossibile procedere al riscatto",
+                        err : err
+                    })
+                }
+            }
+        }
+
+        riscatto++;
+    })
+    console.log("riscatto " , riscatto)
+    //Aggiornamento livelli riscattati
+    await db.execute(queries.updateLivelloRiscattatoPortafoglioByIdUtente, [riscatto, idUtente]);
+
+    
+    res.status(201).json({
+        livello_riscattato : livello_riscattato
+    })
+  
+
+}

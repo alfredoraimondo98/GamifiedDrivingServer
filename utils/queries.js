@@ -16,8 +16,12 @@ module.exports = {
                                 ON heroku_344b7c2e1e3b45f.parcheggia.id_auto  = heroku_344b7c2e1e3b45f.auto.id_auto  
                                 WHERE heroku_344b7c2e1e3b45f.parcheggia.id_garage = ?`,
 
+    getItemParcheggia: 'SELECT * FROM parcheggia WHERE id_garage = ? AND id_auto = ?',
+    getItemProfiloavatar: 'SELECT * FROM profiloavatar WHERE id_garage = ? AND id_avatar = ?',
 
     getDrivePassByStagione: 'SELECT * FROM drivepass WHERE stagione = ?',
+    getDrivePassByLivello: 'SELECT * FROM drivepass WHERE livello = ?',
+
 
     getAllAuto: "SELECT * FROM auto",
     getAutoById: "SELECT * FROM auto WHERE id_auto = ? ",
@@ -41,11 +45,18 @@ module.exports = {
     createInfrazione: "INSERT INTO infrazione (id_sessione, id_utente, timer, tipo, descrizione) VALUES (?,?,?,?,?)",
 
     insertIntoParcheggio: "INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
-
+    insertIntoProfiloAvatar: "INSERT INTO profiloavatar (id_garage, id_avatar, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
 
     updateTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ? WHERE id_utente = ?",
+    incrementTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ticket + ? WHERE id_utente = ?",
+
     updatePointPortafoglioByIdUtente: "UPDATE portafoglio SET acpoint = ? WHERE id_utente = ?",
+    incrementPointPortafoglioByIdUtente: "UPDATE portafoglio SET acpoint = acpoint + ? WHERE id_utente = ?",
+
     updateDrivePassPortafoglio: "UPDATE portafoglio SET acpoint = acpoint + ?, livello = ?, punti_drivepass = ? WHERE id_utente = ?",
+
+    incrementLivelloRiscattatoPortafoglioByIdUtente: "UPDATE portafoglio SET livello_riscattato = livello_riscattato + ? WHERE id_utente = ?",
+
 
     updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ?, bonus = bonus + ?,  malus = ? WHERE id_sessione = ? AND id_utente = ?",
 
