@@ -55,7 +55,7 @@ module.exports = {
 
     updateDrivePassPortafoglio: "UPDATE portafoglio SET acpoint = acpoint + ?, livello = ?, punti_drivepass = ? WHERE id_utente = ?",
 
-    incrementLivelloRiscattatoPortafoglioByIdUtente: "UPDATE portafoglio SET livello_riscattato = livello_riscattato + ? WHERE id_utente = ?",
+    updateLivelloRiscattatoPortafoglioByIdUtente: "UPDATE portafoglio SET livello_riscattato = ? WHERE id_utente = ?",
 
 
     updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ?, bonus = bonus + ?,  malus = ? WHERE id_sessione = ? AND id_utente = ?",

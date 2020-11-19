@@ -304,9 +304,9 @@ exports.riscattaLivello = async (req,res,next) => {
     }
 
      //Riscatta ogni livello
-     var riscatto = 0;
-    await livelliDaRiscattare.forEach( async (item) => {
-        console.log("Sto riscattando ", item);
+    var riscatto = 0; 
+    for (let item of livelliDaRiscattare) {
+      //  console.log("Sto riscattando ", item);
         if(item.tipo_premio == 'acpoints'){
             try{await db.execute(queries.incrementPointPortafoglioByIdUtente, [+item.premio, idUtente])}
             catch(err){ 
@@ -355,15 +355,19 @@ exports.riscattaLivello = async (req,res,next) => {
             }
         }
 
-        riscatto++;
-    })
+        riscatto = item.livello; //salva l'ultio livello riscattato
+    }
+    
+   
     console.log("riscatto " , riscatto)
     //Aggiornamento livelli riscattati
-    await db.execute(queries.updateLivelloRiscattatoPortafoglioByIdUtente, [riscatto, idUtente]);
+    await db.execute(queries.updateLivelloRiscattatoPortafoglioByIdUtente, [riscatto, idUtente]); //Aggiorna il livello riscattato dall'utente
 
     
     res.status(201).json({
-        livello_riscattato : livello_riscattato
+        livello : livello,
+        ultimo_livello_riscattato : livello_riscattato,
+        riscatto_fino_a : riscatto
     })
   
 
