@@ -284,7 +284,7 @@ exports.riscattaLivello = async (req,res,next) => {
     let livelliDaRiscattare = [];
 
 
-     if(livello-1 > livello_riscattato){ //Verifica i livelli da riscattare
+    if(livello-1 > livello_riscattato){ //Verifica i livelli da riscattare
         for(let i = livello_riscattato+1 ; i < livello ; i++){
             try{
                 const [row, field] = await db.execute(queries.getDrivePassByLivello, [i]); 
@@ -342,7 +342,7 @@ exports.riscattaLivello = async (req,res,next) => {
         }
 
         if(item.tipo_premio == 'avatar'){
-            const [row, field] = await db.execute(queries.getItemProfiloAvatar, [idGarage, +item.premio]);
+            /* const [row, field] = await db.execute(queries.getItemProfiloAvatar, [idGarage, +item.premio]);
             console.log("AUTO ", row[0]);
             if(!row[0]){ //Se l'auto non è già disponibile viene aggiunta all'utente
                 try{await db.execute(queries.insertIntoProfiloavatar, [idGarage, +item.premio, 1, 0])}
@@ -352,7 +352,7 @@ exports.riscattaLivello = async (req,res,next) => {
                         err : err
                     })
                 }
-            }
+            } */
         }
 
         riscatto = item.livello; //salva l'ultio livello riscattato
@@ -365,9 +365,7 @@ exports.riscattaLivello = async (req,res,next) => {
 
     
     res.status(201).json({
-        livello : livello,
-        ultimo_livello_riscattato : livello_riscattato,
-        riscatto_fino_a : riscatto
+        reward : livelliDaRiscattare
     })
   
 
