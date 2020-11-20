@@ -306,7 +306,7 @@ exports.riscattaLivello = async (req,res,next) => {
      //Riscatta ogni livello
     var riscatto = 0; 
     for (let item of livelliDaRiscattare) {
-      //  console.log("Sto riscattando ", item);
+        console.log("Sto riscattando ", item);
         if(item.tipo_premio == 'acpoints'){
             try{await db.execute(queries.incrementPointPortafoglioByIdUtente, [+item.premio, idUtente])}
             catch(err){ 
