@@ -361,8 +361,9 @@ exports.riscattaLivello = async (req,res,next) => {
    
     console.log("riscatto " , riscatto)
     //Aggiornamento livelli riscattati
-    await db.execute(queries.updateLivelloRiscattatoPortafoglioByIdUtente, [riscatto, idUtente]); //Aggiorna il livello riscattato dall'utente
-
+    if(riscatto > 0 ){
+        await db.execute(queries.updateLivelloRiscattatoPortafoglioByIdUtente, [riscatto, idUtente]); //Aggiorna il livello riscattato dall'utente
+    }
     
     res.status(201).json({
         reward : livelliDaRiscattare
