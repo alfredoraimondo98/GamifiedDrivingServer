@@ -484,7 +484,7 @@ exports.setInfrazione = async (req,res,next) => {
     let tipo = req.body.tipo;
     let descrizione;
 
-    if(tipo == "limite di velocità"){
+    if(tipo == "Limite di velocità superato"){
         descrizione = "Hai superato il limite di velocità"
     }
     if(tipo == "velocità costante"){
