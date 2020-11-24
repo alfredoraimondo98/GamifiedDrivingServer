@@ -186,8 +186,8 @@ exports.updateSession = async (req,res,next) => {
     let id_sessione = req.body.id_sessione;
     let id_utente = req.body.id_utente;
     let km_percorsi = req.body.distance;
-    let timer_speed_limit = req.body.timer_speed_limit;
-    let timer = getTime(req.body.timer);
+    let timer_speed_limit = req.body.timer_speed_limit; //array tempi di infrazioni del limite di velocità negli ultimi 5 minuti
+    let timer = getTime(req.body.timer); //durata totale della sessione di guida
     let health =  req.body.health;
     let timeGoodDriving;
     let bonus;
@@ -205,28 +205,31 @@ exports.updateSession = async (req,res,next) => {
 
  */
 
-    if(timer_speed_limit[0] && (timer.minuti >= 5 || timer.ore >= 1)){ //Verifica se è stata commessa almeno un infrazione
-        timerFirstSpeedLimit = getTime(timer_speed_limit[0]); // conversione getTime
-        let timeStart = timer.minuti - 5; //Calcolo tempo di partenza dello slot della sessione
-        timeGoodDriving = timerFirstSpeedLimit.minuti - timeStart; //calcolo tempo di guida corretta (In minuti, perchè il controllo si effettua ogni 5 minuti)
-        point = timeGoodDriving; //point calcolati sul tempo di guida corretta
-        bonus = 0; //nessun bonus aggiuntivo per questo slot
+    let verificaTimer = await verificaDurataTimer(timer); //Verifica se la sessione ha superato le due ore di guida (se si supera restituisce TRUE)
 
+    if(!verificaTimer){ //Verifica se è stata superata la durata massima (2 ore) non assegna ulteriori punti
+        if(timer_speed_limit[0] && (timer.minuti >= 5 || timer.ore >= 1)){ //Verifica se è stata commessa almeno un infrazione
+            timerFirstSpeedLimit = getTime(timer_speed_limit[0]); // conversione getTime
+            let timeStart = timer.minuti - 5; //Calcolo tempo di partenza dello slot della sessione
+            timeGoodDriving = timerFirstSpeedLimit.minuti - timeStart; //calcolo tempo di guida corretta (In minuti, perchè il controllo si effettua ogni 5 minuti)
+            point = timeGoodDriving; //point calcolati sul tempo di guida corretta
+            bonus = 0; //nessun bonus aggiuntivo per questo slot
+
+        }
+        else{ //Non sono state commesse infrazioni
+            bonus = 1;
+            point = timerUpdate; //Setta punti 
+        }
+
+        //console.log("TEMPO OK, ", timeGoodDriving);
+        point = (point * health)/100; //Punti (corrisponde a bonus del db)
+
+        //verifica se è stata mantenuta la velocità costante per 10 secondi riceve un punto bonus
+        if(ctr_velocita_costante >= 10 ){
+            bonus = bonus + 1;
+            ctr_velocita_costante = 0; //se ctr_velocita_costante raggiunge 10 viene resetteta a zero
+        }
     }
-    else{ //Non sono state commesse infrazioni
-        bonus = 1;
-        point = timerUpdate; //Setta punti 
-    }
-
-    //console.log("TEMPO OK, ", timeGoodDriving);
-    point = (point * health)/100; //Punti (corrisponde a bonus del db)
-
-    //verifica se è stata mantenuta la velocità costante per 10 secondi riceve un punto bonus
-    if(ctr_velocita_costante >= 10 ){
-        bonus = bonus + 1;
-        ctr_velocita_costante = 0; //se ctr_velocita_costante raggiunge 10 viene resetteta a zero
-    }
-
 
     try{
         const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, point, malus, id_sessione, id_utente ]);
@@ -237,12 +240,23 @@ exports.updateSession = async (req,res,next) => {
         })
     }
 
+  
+
     res.status(201).json({
         message : "Update sessione",
-        ctr_velocita_costante : +ctr_velocita_costante
+        ctr_velocita_costante : +ctr_velocita_costante,
+        verifica_timer : verificaTimer
     })
 }
 
+function verificaDurataTimer(timer){
+    if(timer.ore >= 2){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
 
 function getTime(timer){
     let ore = +timer.split(":")[0];
@@ -289,9 +303,11 @@ function getMySpeed(latA, lonA, latB, lonB){
         speed = 0;
     }
 
+  
+
     return {
         speed: speed.toFixed(0),
-        distance : distance.toFixed(3),
+        distance : distance.toFixed(3)
     }
 }
 
@@ -349,6 +365,8 @@ function velocitaCostante(speed, ctr_velocita_costante){
     
 }
 
+
+ 
 /**
  * Recupera posizione attuale e informazioni relative alla velocità
  * @param {*} req 
@@ -364,18 +382,27 @@ exports.getPosizione = (req,res,next) => {
     var lonB = req.body.lonB; //longitudine A
     var speed = req.body.speed; //Array delle velocità dell'utente
     var ctr_velocita_costante = req.body.ctr_velocita_costante; //costante velocità costante
+    var stop_check = -1; //Inizializza stop_check = 1 (nessuno stop presente)
 
-    var around = '50.0' //precisione di calcolo della posizione (es: 50 metri vicino alle coordinate)
+    var around = '10.0' //precisione di calcolo della posizione (es: 10 metri vicino alle coordinate)
     
+
+    //parametri ottenuti durante la richiesta
+    let idWay; //Id nodo strada
+    let highway; //Tipo strada
+    let maxspeed;  //velocità max sulla strada
+    let name;  //nome strada
+    let access; //access strada
+    let stop = "stop"; //stop   
     
-   var velocitaCostanteResult = velocitaCostante(speed, ctr_velocita_costante);
+    var velocitaCostanteResult = velocitaCostante(speed, ctr_velocita_costante); //Verifica se si sta mantenendo una velocità costante
 
 //Test velocità  
     var speedObject = getMySpeed(latA, lonA, latB, lonB);
   
   //Test velocità
 
-
+    
     var url = `http://overpass-api.de/api/interpreter?data=[out:json][timeout:25];%20(%20way(around:${around},${latB},${lonB});%20);%20out%20body;%20%3E;%20out%20skel%20qt;`
     
 
@@ -383,12 +410,12 @@ exports.getPosizione = (req,res,next) => {
         if (!error && response.statusCode === 200) {
             console.log(body.elements[0].tags) // Print the json response
 
-            let idWay = body.elements[0].id; //Id nodo strada
-            let highway = body.elements[0].tags.highway; //Tipo strada
-            let maxspeed = body.elements[0].tags.maxspeed;  //velocità max sulla strada
-            let name = body.elements[0].tags.name;  //nome strada
-            let access = body.elements[0].tags.access; //access strada
-            let stop = ""; //stop
+            idWay = body.elements[0].id; //Id nodo strada
+            highway = body.elements[0].tags.highway; //Tipo strada
+            maxspeed = body.elements[0].tags.maxspeed;  //velocità max sulla strada
+            name = body.elements[0].tags.name;  //nome strada
+            access = body.elements[0].tags.access; //access strada
+            stop = ""; //stop
 
             console.log(body);
 
@@ -416,6 +443,8 @@ exports.getPosizione = (req,res,next) => {
                 }
             }
 
+       
+            //
             //url query id node per verificare se sono presenti elementi stop.
             var urlIdWay = `http://overpass-api.de/api/interpreter?data=[out:json][timeout:25];way(${idWay})(._;>;);%20out%20body;%20%3E;%20out%20skel%20qt;`
 
@@ -429,7 +458,17 @@ exports.getPosizione = (req,res,next) => {
                 }
             });
 
-            console.log("Acc", access);
+
+            if(stop == 'stop' ){ //Verifica se c'è uno stop 
+                if(+speedObject.speed <= 20){ //e la velocità è inferiore ai 20 km/h
+                    stop_check = true;   //setta check_stop a true (l'utente si è fermato / ha rallentato)
+                }
+                else{
+                    stop_check = false; //Altrimenti false (l'utente non si è fermato/ non ha rallentato)
+                }
+            } 
+
+            console.log("Access", access);
             console.log("VelocitaResponse", velocitaCostanteResult)
             res.status(201).json({
                hyghway : highway,
@@ -440,7 +479,8 @@ exports.getPosizione = (req,res,next) => {
                ztl : access,
                stop : stop,
                velocita_costante : velocitaCostanteResult.flagVelocitaCostante,
-               ctr_velocita_costante : velocitaCostanteResult.ctr_velocita_costante
+               ctr_velocita_costante : velocitaCostanteResult.ctr_velocita_costante,
+               stop_check : stop_check
              // all: body,
              // dati:  body.elements[0].tags
             })
@@ -489,6 +529,9 @@ exports.setInfrazione = async (req,res,next) => {
     }
     if(tipo == "velocità costante"){
         descrizione = "Non hai mantenuto una velocità costante"
+    } 
+    if(tipo == "Non hai rispettato lo stop"){
+        descrizione = "Non hai rispettato lo stop"
     }
  
 
