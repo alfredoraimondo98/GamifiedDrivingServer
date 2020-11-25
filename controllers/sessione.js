@@ -196,8 +196,7 @@ exports.updateSession = async (req,res,next) => {
     //Calcolo del malus
     let malus = (100 - health)/10;
 
-    console.log("***XXXX****", req.body.timer, km_percorsi, point, malus, id_sessione, id_utente)
-
+ 
 
 /*  console.log("id sessione ", id_sessione);
     console.log("id utente ", id_utente);
@@ -233,7 +232,7 @@ exports.updateSession = async (req,res,next) => {
             ctr_velocita_costante = 0; //se ctr_velocita_costante raggiunge 10 viene resetteta a zero
         }
     }
-    console.log("***XXXX****", req.body.timer, km_percorsi, point, malus, id_sessione, id_utente)
+   // console.log("***XXXX****", req.body.timer, km_percorsi, point, malus, id_sessione, id_utente)
     try{
         const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, point, malus, id_sessione, id_utente ]);
     }
