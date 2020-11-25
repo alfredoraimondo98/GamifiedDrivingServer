@@ -67,4 +67,7 @@ module.exports = {
     updateLivelloStatisticheGamification: "UPDATE statistichegamification SET livello = ? WHERE id_utente = ? AND id_app = 1", //id_app = 1 GamifiedDriving
 
 
+    getUltimoAccesso : "SELECT ultimo_accesso FROM utente WHERE id_utente = ?",
+    setUltimoAccesso : "SET ultimo_accesso = ? FROM utente WHERE id_utente = ?"
+
   }

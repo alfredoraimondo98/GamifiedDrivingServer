@@ -196,6 +196,9 @@ exports.updateSession = async (req,res,next) => {
     //Calcolo del malus
     let malus = (100 - health)/10;
 
+    console.log("***XXXX****", req.body.timer, km_percorsi, point, malus, id_sessione, id_utente)
+
+
 /*  console.log("id sessione ", id_sessione);
     console.log("id utente ", id_utente);
     console.log("km percorsi ", km_percorsi);
@@ -230,7 +233,7 @@ exports.updateSession = async (req,res,next) => {
             ctr_velocita_costante = 0; //se ctr_velocita_costante raggiunge 10 viene resetteta a zero
         }
     }
-
+    console.log("***XXXX****", req.body.timer, km_percorsi, point, malus, id_sessione, id_utente)
     try{
         const result = await db.execute(queries.updateSession, [req.body.timer, km_percorsi, point, malus, id_sessione, id_utente ]);
     }
@@ -299,7 +302,7 @@ function getMySpeed(latA, lonA, latB, lonB){
 
     console.log("velocità ", speed.toFixed(0)+" km/h" ) //in km/h
 
-    if(speed == null){
+    if(speed == null && speed == undefined){
         speed = 0;
     }
 
@@ -318,7 +321,7 @@ function getMySpeed(latA, lonA, latB, lonB){
  */
 function velocitaCostante(speed, ctr_velocita_costante){
     let velocita = [];
-    if(speed.length < 5){ //Se l'array di speed contiene meno di 5 elementi considera tutti gli elementi presenti
+    if(speed.length < 5 && speed.length > 0){ //Se l'array di speed contiene meno di 5 elementi considera tutti gli elementi presenti
         speed.forEach( (item) => {
             velocita.push(item);
         })
@@ -382,20 +385,25 @@ exports.getPosizione = (req,res,next) => {
     var lonB = req.body.lonB; //longitudine A
     var speed = req.body.speed; //Array delle velocità dell'utente
     var ctr_velocita_costante = req.body.ctr_velocita_costante; //costante velocità costante
-    var stop_check = -1; //Inizializza stop_check = 1 (nessuno stop presente)
-
-    var around = '10.0' //precisione di calcolo della posizione (es: 10 metri vicino alle coordinate)
+   // var stop_check = -1; //Inizializza stop_check = 1 (nessuno stop presente)
+    console.log("*******", latA, lonA, latB, lonB, speed)
+    var around = '50.0' //precisione di calcolo della posizione (es: 10 metri vicino alle coordinate)
     
-
+    var velocitaCostanteResult = { //velocità costante di default quando non ci sono velocità
+        flagVelocitaCostante : true,
+        ctr_velocita_costante : 0
+    };
     //parametri ottenuti durante la richiesta
-    let idWay; //Id nodo strada
+   /*  let idWay; //Id nodo strada
     let highway; //Tipo strada
     let maxspeed;  //velocità max sulla strada
     let name;  //nome strada
     let access; //access strada
-    let stop = "stop"; //stop   
-    
-    var velocitaCostanteResult = velocitaCostante(speed, ctr_velocita_costante); //Verifica se si sta mantenendo una velocità costante
+    let stop = "stop"; //stop    */
+    if(speed.length > 0){
+        velocitaCostanteResult = velocitaCostante(speed, ctr_velocita_costante); //Verifica se si sta mantenendo una velocità costante
+    }
+     
 
 //Test velocità  
     var speedObject = getMySpeed(latA, lonA, latB, lonB);
@@ -410,12 +418,12 @@ exports.getPosizione = (req,res,next) => {
         if (!error && response.statusCode === 200) {
             console.log(body.elements[0].tags) // Print the json response
 
-            idWay = body.elements[0].id; //Id nodo strada
-            highway = body.elements[0].tags.highway; //Tipo strada
-            maxspeed = body.elements[0].tags.maxspeed;  //velocità max sulla strada
-            name = body.elements[0].tags.name;  //nome strada
-            access = body.elements[0].tags.access; //access strada
-            stop = ""; //stop
+            let idWay = body.elements[0].id; //Id nodo strada
+            let highway = body.elements[0].tags.highway; //Tipo strada
+            let maxspeed = body.elements[0].tags.maxspeed;  //velocità max sulla strada
+            let name = body.elements[0].tags.name;  //nome strada
+            let access = body.elements[0].tags.access; //access strada
+            let stop = ""; //stop
 
             console.log(body);
 
@@ -459,17 +467,17 @@ exports.getPosizione = (req,res,next) => {
             });
 
 
-            if(stop == 'stop' ){ //Verifica se c'è uno stop 
+           /*  if(stop == 'stop' ){ //Verifica se c'è uno stop 
                 if(+speedObject.speed <= 20){ //e la velocità è inferiore ai 20 km/h
                     stop_check = true;   //setta check_stop a true (l'utente si è fermato / ha rallentato)
                 }
                 else{
                     stop_check = false; //Altrimenti false (l'utente non si è fermato/ non ha rallentato)
                 }
-            } 
+            }  */
 
             console.log("Access", access);
-            console.log("VelocitaResponse", velocitaCostanteResult)
+            console.log("VelocitaResponse", velocitaCostanteResult);
             res.status(201).json({
                hyghway : highway,
                maxspeed : +maxspeed,
@@ -480,7 +488,7 @@ exports.getPosizione = (req,res,next) => {
                stop : stop,
                velocita_costante : velocitaCostanteResult.flagVelocitaCostante,
                ctr_velocita_costante : velocitaCostanteResult.ctr_velocita_costante,
-               stop_check : stop_check
+             //  stop_check : stop_check
              // all: body,
              // dati:  body.elements[0].tags
             })
@@ -522,7 +530,9 @@ exports.setInfrazione = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let timer = req.body.timer;
     let tipo = req.body.tipo;
-    let descrizione;
+    let descrizione = "";
+
+    //console.log("****SET INFRAZIONE ", idSessione, idUtente, timer, tipo)
 
     if(tipo == "Limite di velocità superato"){
         descrizione = "Hai superato il limite di velocità"

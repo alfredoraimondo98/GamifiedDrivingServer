@@ -198,6 +198,7 @@ exports.loginApp = async (req,res,next) => {
     let garage;
     let stileDiGuida;
     let idAutoPredefinita;
+    let flagTicketGiornaliero;
 
     try{
          const [row,field] = await db.execute(queries.getUtenteByEmail, [email]);
@@ -210,27 +211,64 @@ exports.loginApp = async (req,res,next) => {
         portafoglio = await getPortafoglioByIdUtente(utenteLogin.id_utente);
         if(!portafoglio){
             return res.status(401).json({
-                message : 'Portafoglio utente non disponibile'
+                text : 'Portafoglio utente non disponibile'
             });
         }
         garage = await getGarageByIdUtente(utenteLogin.id_utente);
         if(!garage){
             return res.status(401).json({
-                message : 'Garage utente non disponibile'
+                text : 'Garage utente non disponibile'
             });
         }
         stileDiGuida = await getStileDiGuidaByIdUtente(utenteLogin.id_utente);
         if(!garage){
             return res.status(401).json({
-                message : 'Stile di guida utente non disponibile'
+                text : 'Stile di guida utente non disponibile'
             });
         }
         idAutoPredefinita = await getAutoPredefinita(utenteLogin.id_utente);
         if(!idAutoPredefinita){
             return res.status(401).json({
-                message : 'Auto predefinita non disponibile'
+                text : 'Auto predefinita non disponibile'
             });
         }
+
+        //Controllo ticket giornaliero sulla base dell'ultimo accesso
+        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso < new Date()){
+            flagTicketGiornaliero = true; //L'utente non ha ancora effettuato un accesso oggi, quindi richiede un bonus
+            try{
+                db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
+            }
+            catch(err){
+                res.status(401).json({
+                    text : 'impossibile recuperare data ultimo accesso',
+                    err : err
+                })
+            }
+
+            try{
+                db.execute(queries.incrementTicketPortafoglioByIdUtente, [1, idUtente]) //Incrementa ticket giornaliero
+            }
+            catch(err){
+                res.status(401).json({
+                    text : 'impossibile aggiornare data ultimo accesso',
+                    err : err
+                })
+            }
+        }
+        else{
+            flagTicketGiornaliero = false;
+            try{
+                db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
+            }
+            catch(err){
+                res.status(401).json({
+                    text : 'impossibile recuperare data ultimo accesso',
+                    err : err
+                })
+            }
+        }
+       
     }
     catch(err){
         console.log(err);
@@ -270,6 +308,7 @@ exports.loginApp = async (req,res,next) => {
                 id_auto_predefinita : idAutoPredefinita.id_auto,
                 friends : friends,
                 token : token,
+                flag_ticket_giornaliero : flagTicketGiornaliero
             });
          
             //console.log(token);
