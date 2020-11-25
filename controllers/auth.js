@@ -234,8 +234,9 @@ exports.loginApp = async (req,res,next) => {
         }
 
         //Controllo ticket giornaliero sulla base dell'ultimo accesso x
-        let data = Date().substring(8,18);
-        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso != data){
+       // let data = Date().substring(8,18);
+       let data;
+        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso != new Date()){
             console.log("Riscatto ticket giornaliero");
            
             console.log("DATA ", data);
