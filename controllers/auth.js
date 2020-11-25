@@ -242,7 +242,7 @@ exports.loginApp = async (req,res,next) => {
         var today = year +"-"+ month +"-"+ day;
         console.log("ULTIMO ACCESSO IN DB ", utenteLogin.ultimo_accesso);
        //let data;
-        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso.toString() != today){
+        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso != today){
             console.log("Riscatto ticket giornaliero");
            
             console.log("DATA ", data);
