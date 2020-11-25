@@ -205,7 +205,7 @@ exports.loginApp = async (req,res,next) => {
          utenteLogin = row[0];
         if(!row[0]){
             return res.status(401).json({
-                message : false
+                text : 'utente non trovato'
             });
         }
         portafoglio = await getPortafoglioByIdUtente(utenteLogin.id_utente);
@@ -275,7 +275,8 @@ exports.loginApp = async (req,res,next) => {
     catch(err){
         console.log(err);
         return res.status(401).json({
-            message : false
+            text : 'utente non trovato',
+            err : err
         });
     }
 
@@ -317,7 +318,8 @@ exports.loginApp = async (req,res,next) => {
             }
             else{
                 return res.status(401).json({
-                    message : false
+                    text : 'utente non trovato',
+                    err : err
                 })
             }
     }));

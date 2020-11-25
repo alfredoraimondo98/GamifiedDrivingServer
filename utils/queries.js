@@ -68,6 +68,6 @@ module.exports = {
 
 
     getUltimoAccesso : "SELECT ultimo_accesso FROM utente WHERE id_utente = ?",
-    setUltimoAccesso : "SET ultimo_accesso = ? FROM utente WHERE id_utente = ?"
+    setUltimoAccesso : "UPDATE utente SET ultimo_accesso = ? WHERE id_utente = ?"
 
   }
