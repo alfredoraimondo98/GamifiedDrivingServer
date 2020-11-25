@@ -234,14 +234,14 @@ exports.loginApp = async (req,res,next) => {
         }
 
         //Controllo ticket giornaliero sulla base dell'ultimo accesso
-        let data = Date().substring(0,10);
-        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso != new Date()){
+        let data = Date().substring(8,18);
+        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso != data){
             console.log("Riscatto ticket giornaliero");
            
             console.log("DATA ", data);
             flagTicketGiornaliero = true; //L'utente non ha ancora effettuato un accesso oggi, quindi richiede un bonus
             try{
-                await db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, [data, idUtente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
@@ -266,7 +266,7 @@ exports.loginApp = async (req,res,next) => {
 
             flagTicketGiornaliero = false;
             try{
-                await db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, [data, idUtente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
