@@ -235,35 +235,37 @@ exports.loginApp = async (req,res,next) => {
 
         //Controllo ticket giornaliero sulla base dell'ultimo accesso
         if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || utenteLogin.ultimo_accesso < new Date()){
+            console.log("Riscatto ticket giornaliero");
             flagTicketGiornaliero = true; //L'utente non ha ancora effettuato un accesso oggi, quindi richiede un bonus
             try{
-                db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
-                    text : 'impossibile recuperare data ultimo accesso',
+                    text : 'impossibile settare data ultimo accesso',
                     err : err
                 })
             }
 
             try{
-                db.execute(queries.incrementTicketPortafoglioByIdUtente, [1, idUtente]) //Incrementa ticket giornaliero
+                await db.execute(queries.incrementTicketPortafoglioByIdUtente, [1, idUtente]) //Incrementa ticket giornaliero
             }
             catch(err){
                 res.status(401).json({
-                    text : 'impossibile aggiornare data ultimo accesso',
+                    text : 'impossibile aggiornare ticket',
                     err : err
                 })
             }
         }
         else{
+            console.log("Ticket giornaliero già riscattato");
             flagTicketGiornaliero = false;
             try{
-                db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, [new Date(), idUtente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
-                    text : 'impossibile recuperare data ultimo accesso',
+                    text : 'impossibile settare data ultimo accesso',
                     err : err
                 })
             }
