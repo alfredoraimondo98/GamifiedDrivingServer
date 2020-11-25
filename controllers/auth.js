@@ -242,7 +242,7 @@ exports.loginApp = async (req,res,next) => {
             console.log("DATA ", data);
             flagTicketGiornaliero = true; //L'utente non ha ancora effettuato un accesso oggi, quindi richiede un bonus
             try{
-                await db.execute(queries.setUltimoAccesso, ["data", idUtente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, ["data", utenteLogin.id_utente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
@@ -267,7 +267,7 @@ exports.loginApp = async (req,res,next) => {
 
             flagTicketGiornaliero = false;
             try{
-                await db.execute(queries.setUltimoAccesso, ["data", idUtente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, ["data", utenteLogin.id_utente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
