@@ -235,20 +235,29 @@ exports.loginApp = async (req,res,next) => {
 
         //Controllo ticket giornaliero sulla base dell'ultimo accesso x
          //Crea data attuale da confrontare
-        var month = new Date().getMonth()+1;
-        var year = new Date().getYear()+1900;
-        var day = new Date().getDate();
+        var month = new Date().getUTCMonth()+1;
+        var year = new Date().getUTCFullYear();
+        var day = new Date().getUTCDate();
 
-        var today = year +"-"+ month +"-"+ day;
-        console.log("ULTIMO ACCESSO IN DB ", new Date(utenteLogin.ultimo_accesso.toString()));
+        var today = year +"-"+ month +"-"+ day; //costruzione data attuale
+
+        //Ricostruzione data dal db
+        var mese = utenteLogin.ultimo_accesso.getUTCMonth()+1;
+        var anno = utenteLogin.ultimo_accesso.getUTCFullYear();
+        var giorno = utenteLogin.ultimo_accesso.getUTCDate()+1; //+1 fuso orario db heroku (****)
+
+        var dataFromDatabase = anno +"-"+ mese +"-"+ giorno; //Costruzione data dal db
+
+
+        console.log("ULTIMO ACCESSO IN DB ", today , new Date(dataFromDatabase), new Date());
        //let data;
-        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || new Date(utenteLogin.ultimo_accesso.toString()) < new Date()){
+        if(utenteLogin.ultimo_accesso == null || utenteLogin.ultimo_accesso == undefined || new Date(dataFromDatabase) < new Date(today)){
             console.log("Riscatto ticket giornaliero");
            
-            console.log("DATA ", data);
+             
             flagTicketGiornaliero = true; //L'utente non ha ancora effettuato un accesso oggi, quindi richiede un bonus
             try{
-                await db.execute(queries.setUltimoAccesso, [new Date(), utenteLogin.id_utente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, [new Date(today), utenteLogin.id_utente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
@@ -269,11 +278,10 @@ exports.loginApp = async (req,res,next) => {
         }
         else{
             console.log("Ticket giornaliero già riscattato");
-            console.log("DATA ", data);
-
+ 
             flagTicketGiornaliero = false;
             try{
-                await db.execute(queries.setUltimoAccesso, [new Date(), utenteLogin.id_utente]) //Aggiorna ultimo accesso
+                await db.execute(queries.setUltimoAccesso, [new Date(today), utenteLogin.id_utente]) //Aggiorna ultimo accesso
             }
             catch(err){
                 res.status(401).json({
