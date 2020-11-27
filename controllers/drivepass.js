@@ -355,7 +355,7 @@ exports.riscattaLivello = async (req,res,next) => {
             } */
         }
 
-        riscatto = item.livello; //salva l'ultio livello riscattato
+        riscatto = item.livello; //salva l'ultimo livello riscattato
     }
     
    

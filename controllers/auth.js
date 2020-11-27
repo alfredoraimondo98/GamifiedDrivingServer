@@ -323,6 +323,7 @@ exports.loginApp = async (req,res,next) => {
                 tipo_accesso : utenteLogin.tipo_accesso,
                 tipo_utente : stileDiGuida.tipo,
                 livello : portafoglio.livello,
+                livello_riscattato : portafoglio.livello_riscattato,
                 ac_point : portafoglio.acpoint,
                 ticket : portafoglio.ticket,
                 punti_drivepass : portafoglio.punti_drivepass,
