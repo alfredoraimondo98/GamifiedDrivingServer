@@ -38,7 +38,7 @@ async function getUserFacebook() {
               }
                
               let nameDisplay = result.name;
-              nameDisplay += ' We';
+             // nameDisplay += '  ';
              // console.log(" NNN ", nameDisplay)
                
               let nome = nameDisplay.split(" ")[0];
@@ -65,7 +65,7 @@ async function getUserFacebook() {
                 email : result.email,
                 citta : result.location.name,
                 friends : friends, //array amici di fb
-                tipo : 'Standard',
+                tipo : 'Standard', //Setta l'utente a tipo standard
                 id : result.id
               }
               resolve(user);
@@ -351,11 +351,11 @@ exports.loginMe = () => {
     
 }
 
-
-var mediaSettimanale = 0;
-var costanteCrescita = 0;
-var tolleranzaMin = 0;
-var tolleranzaMax = 0;
+//Variabili globali per definire lo stile di guida dell'utente
+var mediaSettimanale = 0; //Media settimanale 
+var costanteCrescita = 0; //Costante di crescita
+var tolleranzaMin = 0; //Tolleranza minima 
+var tolleranzaMax = 0; //Tolleranza massima
 /** /auth/register/
  * Crea utente (Registrazione): Creazione utente con portafoglio e garage associati all'utente
  * @param {*} req 
@@ -552,9 +552,9 @@ exports.createUtente = async (req, res, next) => {
                 });
             });
         }
-        catch (err) {
+        catch(err) {
             console.log("chiudo connessione");
-            conn.end();
+            //conn.end();
             return res.status(401).json({
                 text: "impossibile completare la registrazione",
                 err : err
@@ -596,13 +596,14 @@ exports.checkEmail = async (req, res, next) => {
  */
  function defineStileGuida(tipo){
     if(tipo==='Viaggiatore'){
-        this.mediaSettimanale = 220;
+        mediaSettimanale = 220;
         costanteCrescita = 0.5;
         tolleranzaMin = 180;
         tolleranzaMax = 400;
         
     }
     else if(tipo==='Standard'){
+        mediaSettimanale = 150;
         costanteCrescita = 1;
         tolleranzaMin = 120;
         tolleranzaMax = 180;

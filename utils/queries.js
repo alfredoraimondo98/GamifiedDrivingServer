@@ -35,6 +35,16 @@ module.exports = {
 
     getInfrazioni: "SELECT * FROM infrazione WHERE id_sessione = ? AND id_utente = ? ORDER BY id_infrazione",
 
+    getAllCitta : "SELECT citta FROM utente GROUP BY citta",
+
+    getSfidaByCitta : "SELECT * FROM sfida WHERE team1 = ? OR team2 = ?",
+
+    getRisultatoSfidaPuntiDrivePass : "SELECT citta, SUM(punti_drivepass) as punti FROM portafoglio JOIN utente WHERE portafoglio.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Restituisce punti drivepass per la sfida "PuntiDrivePass" tra le due citta coinvolte
+    getRisultatoSfidaBonus : "SELECT citta, SUM(bonus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Risultato sfida BONUS
+    getRisultatoSfidaMalus : "SELECT citta, SUM(malus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Risultato sfida MALUS
+    
+    insertSfida : "INSERT INTO sfida (team1, team2, tipo_sfida, descrizione, data_fine_sfida, stato, premio, tipo_premio, punti_team1, punti_team2) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
     createGarage: "INSERT INTO garage (id_utente) values (?)",
@@ -66,6 +76,7 @@ module.exports = {
 
     updateLivelloStatisticheGamification: "UPDATE statistichegamification SET livello = ? WHERE id_utente = ? AND id_app = 1", //id_app = 1 GamifiedDriving
 
+    updatePunteggioSfida : "UPDATE sfida SET punti_team1 = ?, punti_team2 = ? WHERE id_sfida = ? ", //update punteggio Sfida
 
     getUltimoAccesso : "SELECT ultimo_accesso FROM utente WHERE id_utente = ?",
     setUltimoAccesso : "UPDATE utente SET ultimo_accesso = ? WHERE id_utente = ?"

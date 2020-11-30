@@ -252,8 +252,8 @@ exports.getClassificaGlobale = async (req,res,next) => {
     let classifica;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM heroku_344b7c2e1e3b45f.utente JOIN heroku_344b7c2e1e3b45f.portafoglio 
-                                                ON heroku_344b7c2e1e3b45f.utente.id_utente = heroku_344b7c2e1e3b45f.portafoglio.id_utente 
+                                                FROM utente JOIN portafoglio 
+                                                ON utente.id_utente = portafoglio.id_utente 
                                             ORDER BY punti_drivepass DESC
                                                 `);
         classifica = rows;
@@ -294,8 +294,8 @@ exports.getClassificaLocale = async (req,res,next) => {
 
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM heroku_344b7c2e1e3b45f.utente JOIN heroku_344b7c2e1e3b45f.portafoglio 
-                                                ON heroku_344b7c2e1e3b45f.utente.id_utente = heroku_344b7c2e1e3b45f.portafoglio.id_utente 
+                                                FROM utente JOIN portafoglio 
+                                                ON utente.id_utente = portafoglio.id_utente 
                                                 WHERE citta = ?
                                              ORDER BY punti_drivepass DESC
         `, [utente.citta]);

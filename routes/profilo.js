@@ -12,4 +12,9 @@ router.post('/garage/setAutoPredefinita', profiloController.setAutoPredefinita);
 router.get('/classifica/getClassificaGlobale', profiloController.getClassificaGlobale);
 router.post('/classifica/getClassificaLocale', profiloController.getClassificaLocale);
 router.post('/classifica/getClassificaFacebook', profiloController.getClassificaFacebook);
+
+
+
+
+
 module.exports = router;
