@@ -400,6 +400,7 @@ exports.createUtente = async (req, res, next) => {
         tipo = req.body.tipo;
         tipo_accesso = 'app';
         idFacebook = -1;
+        console.log("DATI UTENTE nome, cognome,email,password, citta, tipo", nome,cognome,email,password,tipo);
     }
 
 
