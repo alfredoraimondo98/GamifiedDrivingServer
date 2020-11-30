@@ -4,7 +4,7 @@ const router = express.Router()
  
 const sfidaController = require('../controllers/sfida');
 
-router.post('/generateSfide', sfidaController.generateSfide);
+router.get('/generateSfide', sfidaController.generateSfide);
 
 router.post('/getSfida', sfidaController.getSfida);
 

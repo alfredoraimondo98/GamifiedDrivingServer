@@ -48,13 +48,14 @@ exports.generateSfide = async(req,res,next) => {
             let sfida = tipoSfida[indexSfida]; //indica la sfida per i due team
             let descrizione = descrizioneSfida[indexSfida]; //descrizione della sfida assegnata ai due team
 
-            let data_fine_sfida = new Date();
-            let dd = new Date().getUTCDate()+7;
-            data_fine_sfida = format('yyyy-MM-dd', new Date(), strtotime("+1 week"));;
-
-            console.log(data_fine_sfida)
+        
+             
             
-           // console.log(data_fine_sfida) /**********/ */
+            let data_inizio_sfida = format('yyyy-MM-dd', new Date());
+
+            let data_fine_sfida =  new Date();
+            data_fine_sfida.setDate(data_fine_sfida.getDate() + 7); //Setta data fine sfida a tra una settimana
+            
             let stato = 'in corso';
 
             let indexTipoPremio = Math.floor(Math.random() * tipoPremio.length);   //genera un elemento random per selezionare il tipo premio
@@ -70,8 +71,9 @@ exports.generateSfide = async(req,res,next) => {
                 premio = ticketsPremi[indexPremio];
             }
 
+            
             try{
-                await db.execute(queries.insertSfida, [team1, team2, sfida, descrizione, data_fine_sfida, stato, premio, tipo_premio, 0, 0]);
+                await db.execute(queries.insertSfida, [team1, team2, sfida, descrizione, data_inizio_sfida, data_fine_sfida, stato, premio, tipo_premio, 0, 0]);
             }
             catch(err){
                 res.status(401).json({
@@ -109,7 +111,7 @@ exports.getSfida = async (req,res,next) => {
     }
 
     let punteggio = await calcolaPunteggioSfida(sfida);
-    //console.log("*******", punteggio, sfida.id_sfida)
+    console.log("*******", punteggio, sfida.id_sfida)
     try{
         const result = await db.execute(queries.updatePunteggioSfida, [+punteggio.punti_team1 , +punteggio.punti_team2, sfida.id_sfida ]);
         console.log("RESULT ", result);
@@ -121,6 +123,22 @@ exports.getSfida = async (req,res,next) => {
         })
     }
     
+
+    try{
+        const [row, field] = await db.execute(queries.getSfidaByCitta, [cittaUtente, cittaUtente]); //recupera la sfida aggiornata
+        sfida = row[0];
+        if(sfida == undefined || sfida == null){
+            res.status(201).json({
+                sfida : 'non sono presenti sfide per la tua citta'
+            })
+        }
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile recuperare la sfida per questo utente',
+            err : err
+        })
+    }
     res.status(201).json({
         sfida : sfida
     })
@@ -132,27 +150,34 @@ async function calcolaPunteggioSfida(sfida){
     let punti_team2 = 0;
 
 
-   
-    
-    format('yyyy-MM-dd', new Date());
-
     if(sfida.tipo_sfida == 'PuntiDrivepass'){ //Recupera punti per la sfida PuntiDrivePass
         try{
 
             const [rows, field] = await db.execute(queries.getRisultatoSfidaPuntiDrivePass, [sfida.team1, sfida.team2]);
             
-            if(sfida.team1 == rows[0].citta){
-                punti_team1 = rows[0].punti;
-                punti_team2 = rows[1].punti;
+            if(rows[1] == undefined || rows[1] == null){
+                if(sfida.team1 == rows[0].citta){
+                    punti_team1 = rows[0].punti;
+                    punti_team2 = 0;
+                }
+                else{
+                    punti_team1 = 0;
+                    punti_team2 = rows[0].punti;
+                }
             }
-            else{
-                punti_team1 = rows[1].punti;
-                punti_team2 = rows[0].punti;
+            else if(rows[0] != undefined && rows[0] != null && rows[1] != undefined && rows[1] != null){
+                if(sfida.team1 == rows[0].citta){
+                    punti_team1 = rows[0].punti;
+                    punti_team2 = rows[1].punti;
+                }
+                else{
+                    punti_team1 = rows[1].punti;
+                    punti_team2 = rows[0].punti;
 
+                }
             }
-    
              
-            console.log(punti_team1, punti_team2)
+           // console.log(punti_team1, punti_team2)
         }
         catch(err){
             return {
@@ -163,19 +188,31 @@ async function calcolaPunteggioSfida(sfida){
     }
     if(sfida.tipo_sfida == 'Bonus'){ //Recupera punteggio per la sfida "Bonus"
         try{
-            const [rows, field] = await db.execute(queries.getRisultatoSfidaBonus, [sfida.team1, sfida.team2]);
+            const [rows, field] = await db.execute(queries.getRisultatoSfidaBonus, [sfida.team1, sfida.team2, sfida.data_inizio_sfida, sfida.data_fine_sfida]);
             
-            if(sfida.team1 == rows[0].citta){
-                punti_team1 = rows[0].punti;
-                punti_team2 = rows[1].punti;
+            if(rows[1] == undefined || rows[1] == null){
+                if(sfida.team1 == rows[0].citta){
+                    punti_team1 = rows[0].punti;
+                    punti_team2 = 0;
+                }
+                else{
+                    punti_team1 = 0;
+                    punti_team2 = rows[0].punti;
+                }
             }
-            else{
-                punti_team1 = rows[1].punti;
-                punti_team2 = rows[0].punti;
+            else if(rows[0] != undefined && rows[0] != null && rows[1] != undefined && rows[1] != null){
+                if(sfida.team1 == rows[0].citta){
+                    punti_team1 = rows[0].punti;
+                    punti_team2 = rows[1].punti;
+                }
+                else{
+                    punti_team1 = rows[1].punti;
+                    punti_team2 = rows[0].punti;
 
+                }
             }
             
-           // console.log(punti_team1, punti_team2)
+            console.log("BONUS ",punti_team1, punti_team2)
         }
         catch(err){
             return {
@@ -186,16 +223,28 @@ async function calcolaPunteggioSfida(sfida){
     }
     if(sfida.tipo_sfida == 'Malus'){ //Recupera punteggio per la sfida "Malus"
         try{
-            const [rows, field] = await db.execute(queries.getRisultatoSfidaMalus, [sfida.team1, sfida.team2]);
+            const [rows, field] = await db.execute(queries.getRisultatoSfidaMalus, [sfida.team1, sfida.team2, sfida.data_inizio_sfida, sfida.data_fine_sfida]);
             
-            if(sfida.team1 == rows[0].citta){
-                punti_team1 = rows[0].punti;
-                punti_team2 = rows[1].punti;
+            if(rows[1] == undefined || rows[1] == null){
+                if(sfida.team1 == rows[0].citta){
+                    punti_team1 = rows[0].punti;
+                    punti_team2 = 0;
+                }
+                else{
+                    punti_team1 = 0;
+                    punti_team2 = rows[0].punti;
+                }
             }
-            else{
-                punti_team1 = rows[1].punti;
-                punti_team2 = rows[0].punti;
+            else if(rows[0] != undefined && rows[0] != null && rows[1] != undefined && rows[1] != null){
+                if(sfida.team1 == rows[0].citta){
+                    punti_team1 = rows[0].punti;
+                    punti_team2 = rows[1].punti;
+                }
+                else{
+                    punti_team1 = rows[1].punti;
+                    punti_team2 = rows[0].punti;
 
+                }
             }
             
             //console.log(punti_team1, punti_team2)

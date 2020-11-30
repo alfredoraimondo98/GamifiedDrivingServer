@@ -40,10 +40,10 @@ module.exports = {
     getSfidaByCitta : "SELECT * FROM sfida WHERE team1 = ? OR team2 = ?",
 
     getRisultatoSfidaPuntiDrivePass : "SELECT citta, SUM(punti_drivepass) as punti FROM portafoglio JOIN utente WHERE portafoglio.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Restituisce punti drivepass per la sfida "PuntiDrivePass" tra le due citta coinvolte
-    getRisultatoSfidaBonus : "SELECT citta, SUM(bonus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Risultato sfida BONUS
-    getRisultatoSfidaMalus : "SELECT citta, SUM(malus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Risultato sfida MALUS
+    getRisultatoSfidaBonus : "SELECT citta, SUM(bonus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) AND sessione.data >= ? AND sessione.data <= ? GROUP BY citta", //Risultato sfida BONUS
+    getRisultatoSfidaMalus : "SELECT citta, SUM(malus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) AND sessione.data >= ? AND sessione.data <= ? GROUP BY citta", //Risultato sfida MALUS
     
-    insertSfida : "INSERT INTO sfida (team1, team2, tipo_sfida, descrizione, data_fine_sfida, stato, premio, tipo_premio, punti_team1, punti_team2) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    insertSfida : "INSERT INTO sfida (team1, team2, tipo_sfida, descrizione, data_inizio_sfida, data_fine_sfida, stato, premio, tipo_premio, punti_team1, punti_team2) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
