@@ -8,4 +8,9 @@ router.get('/generateSfide', sfidaController.generateSfide);
 
 router.post('/getSfida', sfidaController.getSfida);
 
+router.post('/partecipaSfida', sfidaController.partecipaSfida);
+
+router.post('/riscattoSfida', sfidaController.riscattoSfida);
+
+router.post('/getAllSfide', sfidaController.getAllSfide);
 module.exports = router;

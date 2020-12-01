@@ -29,6 +29,7 @@ module.exports = {
     getAutoByIdAndByIdGarage: "SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?",
 
     getSessioneById: "SELECT * FROM sessione WHERE id_sessione = ? AND id_utente = ?",
+    getSessioniByRangeData: "SELECT * FROM sessione WHERE id_utente = ? AND data >= ? AND data <= ?",
 
     getAllAvatar: "SELECT * FROM avatar",
     getAvatarById: "SELECT * FROM avatar WHERE id_avatar = ? ",
@@ -38,12 +39,19 @@ module.exports = {
     getAllCitta : "SELECT citta FROM utente GROUP BY citta",
 
     getSfidaByCitta : "SELECT * FROM sfida WHERE team1 = ? OR team2 = ?",
+    getSfidaAttivaByCitta : "SELECT * FROM sfida WHERE (team1 = ? OR team2 = ?) AND stato = 'in corso'",
+
+    getSfidaById : "SELECT * FROM sfida WHERE id_sfida = ?",
 
     getRisultatoSfidaPuntiDrivePass : "SELECT citta, SUM(punti_drivepass) as punti FROM portafoglio JOIN utente WHERE portafoglio.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Restituisce punti drivepass per la sfida "PuntiDrivePass" tra le due citta coinvolte
     getRisultatoSfidaBonus : "SELECT citta, SUM(bonus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) AND sessione.data >= ? AND sessione.data <= ? GROUP BY citta", //Risultato sfida BONUS
     getRisultatoSfidaMalus : "SELECT citta, SUM(malus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) AND sessione.data >= ? AND sessione.data <= ? GROUP BY citta", //Risultato sfida MALUS
     
     insertSfida : "INSERT INTO sfida (team1, team2, tipo_sfida, descrizione, data_inizio_sfida, data_fine_sfida, stato, premio, tipo_premio, punti_team1, punti_team2) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+
+    insertPartecipa : "INSERT INTO partecipa (id_utente, id_sfida, punti_utente, riscatto_premio) VALUES (?, ?, 0, 0)",
+
+    getSfideByUtente : "SELECT * FROM partecipa JOIN sfida WHERE partecipa.id_sfida = sfida.id_sfida AND partecipa.id_utente = ?",
 
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
@@ -69,6 +77,8 @@ module.exports = {
 
 
     updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ?, bonus = bonus + ?,  malus = ? WHERE id_sessione = ? AND id_utente = ?",
+
+    updatePartecipa: "UPDATE partecipa SET punti_utente = ?, riscatto_premio = ? WHERE id_utente = ? AND id_sfida = ?",
 
     AutoPredefinita : "UPDATE parcheggia SET predefinito = 1 WHERE id_garage = ? AND id_auto = ?",
     setNewAutoPredefinita : "UPDATE parcheggia SET predefinito = 1 WHERE id_garage = ? AND id_auto = ?",
