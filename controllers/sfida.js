@@ -213,9 +213,10 @@ exports.getSfida = async (req,res,next) => {
         //Scambia nomi team
         sfida.team2 = sfida.team1;
         sfida.team1 = cittaUtente;
+        
          //Scambia punti team
         let punti_t1 = sfida.punti_team1;
-        sfida.punt_team1 = sfida.punti_team2;
+        sfida.punti_team1 = sfida.punti_team2;
         sfida.punti_team2 = punti_t1;
     }
 
