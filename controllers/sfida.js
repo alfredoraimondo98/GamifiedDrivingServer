@@ -96,7 +96,7 @@ exports.generateSfide = async(req,res,next) => {
 }
 
 /**
- * Restituisce le sfide attive in cui la città dell'utente è coinvoltas
+ * Restituisce le sfide attive in cui la città dell'utente è coinvolto
  * @param {*} req 
  * @param {*} res 
  * @param {*} next 
@@ -105,8 +105,6 @@ exports.getSfida = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let cittaUtente = req.body.citta;
     let sfida;    
-
-    
 
     try{
         const [row, field] = await db.execute(queries.getSfidaAttivaByCitta, [cittaUtente, cittaUtente]);
@@ -154,8 +152,69 @@ exports.getSfida = async (req,res,next) => {
             err : err
         })
     }
+
+    //Verifica che non partecipa già alla sfida
+    let partecipa = false;
+    try{
+        const [row, field] = await db.execute(queries.getPartecipa, [idUtente, sfida.id_sfida]);
+        if(row != undefined || row != null || row == [] ){ //l'utente già partecipa alla sfida
+            partecipa = true;
+        }
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile recuperare i dati',
+            err : err
+        })
+    }
+
+    //Verifica che l'utente abbia partecipato alla sfida (ha effettuato almeno una sessione)
+    let sessioni;
+    let punti_utente = 0;
+    try{
+        const [rows, field] = await db.execute(queries.getSessioniByRangeData, [idUtente, sfida.data_inizio_sfida, sfida.data_fine_sfida]);
+        if(rows != undefined || rows!= null || rows != []){
+            sessioni = rows;
+        }         
+    }
+    catch(err){
+        console.log("err ", err)
+    }
+    //Calcola punteggio dell'utente
+    if(sessioni.length > 0){ //Se ci sono sessioni durante la sfida allora l'utente ha diritto al premio
+        flagPartecipato = true; //setta flag a true per riscattare il premio
+
+        if(sfida.tipo_sfida =='Bonus' || sfida.tipo_sfida=='Malus') {
+            for(let s of sessioni){
+                if(sfida.tipo_sfida == 'Bonus'){
+                    punti_utente += s.bonus;
+                }
+                else if(sfida.tipo_sfida =='Malus'){
+                    punti_utente += s.malus;
+                }
+            }
+        }
+        else if(sfida.tipo_sfida =='PuntiDrivePass'){
+            try{
+                const [row,field] = await db.execute(queries.getPortafoglioByIdUtente, [idUtente]);
+                punti_utente = rows[0].punti_drivepass;
+            }
+            catch(err){
+                res.status(401).json({
+                    text : 'impossibile recuperare portafoglio utente',
+                    err : err
+                })
+            }
+        }
+    }
+
+
+
     res.status(201).json({
-        sfida : sfida
+        sfida : sfida,
+        partecipa : partecipa,
+        punti_utente : punti_utente,
+
     })
 }
 
@@ -170,7 +229,6 @@ async function calcolaPunteggioSfida(sfida){
 
     if(sfida.tipo_sfida == 'PuntiDrivepass'){ //Recupera punti per la sfida PuntiDrivePass
         try{
-
             const [rows, field] = await db.execute(queries.getRisultatoSfidaPuntiDrivePass, [sfida.team1, sfida.team2]);
             
             if(rows[1] == undefined || rows[1] == null){ //Verifica se uno dei due team ha punteggio 0
@@ -292,6 +350,7 @@ exports.partecipaSfida = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let idSfida = req.body.id_sfida;
 
+    
     try{
         await db.execute(queries.insertPartecipa, [idUtente, idSfida]);
 

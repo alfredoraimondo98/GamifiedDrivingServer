@@ -368,9 +368,17 @@ exports.riscattaLivello = async (req,res,next) => {
     res.status(201).json({
         reward : livelliDaRiscattare
     })
-  
+}
 
 
-    
+exports.nuovaStagione = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+
+    try{
+
+    }
+    catch(err){
+        
+    }
 
 }

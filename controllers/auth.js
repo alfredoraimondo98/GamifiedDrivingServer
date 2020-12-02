@@ -352,7 +352,7 @@ exports.loginMe = () => {
 }
 
 //Variabili globali per definire lo stile di guida dell'utente
-var mediaSettimanale = 0; //Media settimanale 
+var media = 0; //Media settimanale 
 var costanteCrescita = 0; //Costante di crescita
 var tolleranzaMin = 0; //Tolleranza minima 
 var tolleranzaMax = 0; //Tolleranza massima
@@ -492,7 +492,7 @@ exports.createUtente = async (req, res, next) => {
 
                                 defineStileGuida(tipo);
 
-                                conn.query(queries.createStileDiGuida, [idInsertUtente, tipo, mediaSettimanale, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
+                                conn.query(queries.createStileDiGuida, [idInsertUtente, tipo, media, costanteCrescita, tolleranzaMin, tolleranzaMax], (err, result) => {
                                     if (err) {
                                         conn.rollback((err) => {
 
@@ -519,8 +519,17 @@ exports.createUtente = async (req, res, next) => {
                                                 err : err
                                             });
                                         }
-                                        var idInsertStileGuida = result.insertId;
-                        
+                                         
+                                        conn.query(queries.createStoricoDrivePass, [1, idInsertUtente, 0, 0, '2020-12-31'], (err, result) => {
+                                            if (err) {
+                                                conn.rollback((err) => {
+                                                    console.log("error storico drive pass", err);
+                                                });
+                                                return res.status(401).json({
+                                                    text: "impossibile inserire l'utente ",
+                                                    err : err
+                                                });
+                                            }
 
 
                                         conn.commit((err) => {
@@ -546,6 +555,7 @@ exports.createUtente = async (req, res, next) => {
                                             }
                                         });
                                     }); 
+                                });
                                 }); 
                             });
                         });
@@ -592,28 +602,28 @@ exports.checkEmail = async (req, res, next) => {
 
     
 /**
- * Definizione dello stile di guida sulla base del tipo di utente
+ * Definizione dello stile di guida sulla base del tipo di utente (tutti i valori sono stati convertiti da settimanale in mensile)
  * @param {*} tipo 
  */
  function defineStileGuida(tipo){
     if(tipo==='Viaggiatore'){
-        mediaSettimanale = 220;
+        media = 880;
         costanteCrescita = 0.5;
-        tolleranzaMin = 180;
-        tolleranzaMax = 400;
+        tolleranzaMin = 720;
+        tolleranzaMax = 1200;
         
     }
     else if(tipo==='Standard'){
-        mediaSettimanale = 150;
+        media = 600;
         costanteCrescita = 1;
-        tolleranzaMin = 120;
-        tolleranzaMax = 180;
+        tolleranzaMin = 480;
+        tolleranzaMax = 720;
     }
     else if(tipo==='Salutista'){
-        mediaSettimanale = 100;
+        media = 400;
         costanteCrescita = 2;
         tolleranzaMin = 0;
-        tolleranzaMax = 120;    
+        tolleranzaMax = 480;    
     }
  }
 
@@ -734,9 +744,9 @@ async function getParcheggioByIdGarage(idGarage){
     let parcheggio;
     try{
         const [rows, field] = await db.execute(`SELECT * 
-                                                FROM heroku_344b7c2e1e3b45f.parcheggia JOIN heroku_344b7c2e1e3b45f.auto 
-                                                ON heroku_344b7c2e1e3b45f.parcheggia.id_auto = heroku_344b7c2e1e3b45f.auto.id_auto 
-                                                WHERE heroku_344b7c2e1e3b45f.parcheggia.id_garage = ?`, [idGarage]
+                                                FROM parcheggia JOIN auto 
+                                                ON parcheggia.id_auto = auto.id_auto 
+                                                WHERE parcheggia.id_garage = ?`, [idGarage]
                                             );
                                             
         parcheggio = rows;

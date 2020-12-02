@@ -43,6 +43,8 @@ module.exports = {
 
     getSfidaById : "SELECT * FROM sfida WHERE id_sfida = ?",
 
+    getPartecipa : "SELECT * FROM partecipa WHERE id_utente = ? AND id_sfida = ?",
+
     getPartecipaDaRiscattare : "SELECT * FROM partecipa WHERE id_utente = ? AND riscatto_premio = 0 ORDER BY id_sfida DESC",
 
     getRisultatoSfidaPuntiDrivePass : "SELECT citta, SUM(punti_drivepass) as punti FROM portafoglio JOIN utente WHERE portafoglio.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Restituisce punti drivepass per la sfida "PuntiDrivePass" tra le due citta coinvolte
@@ -63,6 +65,7 @@ module.exports = {
     createSession: "INSERT INTO sessione (durata, km_percorsi, bonus, malus, id_utente, data) VALUES (?,?,?,?,?, ?)",
 
     createInfrazione: "INSERT INTO infrazione (id_sessione, id_utente, timer, tipo, descrizione) VALUES (?,?,?,?,?)",
+    createStoricoDrivePass : "INSERT INTO storicodrivepass (stagione, id_utente, livello_finale, punti_guadagnati, data_fine) VALUE (?,?,?,?,?)",
 
     insertIntoParcheggio: "INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
     insertIntoProfiloAvatar: "INSERT INTO profiloavatar (id_garage, id_avatar, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
