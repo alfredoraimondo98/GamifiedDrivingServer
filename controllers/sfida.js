@@ -157,7 +157,7 @@ exports.getSfida = async (req,res,next) => {
     let partecipa = false;
     try{
         const [row, field] = await db.execute(queries.getPartecipa, [idUtente, sfida.id_sfida]);
-        if(row != undefined || row != null || row == [] ){ //l'utente già partecipa alla sfida
+         if(row[0] != undefined || row[0] != null ){ //l'utente già partecipa alla sfida
             partecipa = true;
         }
     }
