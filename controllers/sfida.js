@@ -212,9 +212,10 @@ exports.getSfida = async (req,res,next) => {
 
     res.status(201).json({
         sfida : sfida,
-        partecipa : partecipa,
-        punti_utente : punti_utente,
-
+        challenger : {
+            partecipa : partecipa,
+            punti_utente : punti_utente,
+        }
     })
 }
 
