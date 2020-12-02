@@ -55,7 +55,7 @@ module.exports = {
 
     insertPartecipa : "INSERT INTO partecipa (id_utente, id_sfida, punti_utente, riscatto_premio) VALUES (?, ?, 0, 0)",
 
-    getSfideByUtente : "SELECT * FROM partecipa JOIN sfida WHERE partecipa.id_sfida = sfida.id_sfida AND partecipa.id_utente = ?",
+    getSfideByUtente : "SELECT sfida.id_sfida, sfida.team1, sfida.team2, sfida.tipo_sfida, sfida.descrizione, sfida.data_inizio_sfida, sfida.data_fine_sfida, sfida.stato, sfida.premio, sfida.tipo_premio, sfida.punti_team1, sfida.punti_team2 FROM partecipa JOIN sfida WHERE partecipa.id_sfida = sfida.id_sfida AND partecipa.id_utente = ?",
 
     createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
     createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",

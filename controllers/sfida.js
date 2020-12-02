@@ -529,7 +529,23 @@ exports.getAllSfide = async (req,res,next) => {
         })
     }
 
+    let vittoria = "";
+    for(let sfida of sfideUtente){
+        if(sfida.stato == 'terminato'){
+            if(sfida.punti_team1 > sfida.punti_team2 ){
+                vittoria = sfida.team1;
+            }
+            else if(sfida.punti_team1 < sfida.punti_team2 ){
+                vittoria = sfida.team2;
+            }
+            else if(sfida.punti_team1 == sfida.punti_team2){
+                vittoria = 'pareggio'
+            }
+        }
+        sfida.vittoria = vittoria;
+    }
+
     res.status(201).json({
-        sfide_utente : sfideUtente
+        sfide : sfideUtente
     })
 }
