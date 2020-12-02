@@ -43,6 +43,8 @@ module.exports = {
 
     getSfidaById : "SELECT * FROM sfida WHERE id_sfida = ?",
 
+    getPartecipaDaRiscattare : "SELECT * FROM partecipa WHERE id_utente = ? AND riscatto_premio = 0 ORDER BY id_sfida DESC",
+
     getRisultatoSfidaPuntiDrivePass : "SELECT citta, SUM(punti_drivepass) as punti FROM portafoglio JOIN utente WHERE portafoglio.id_utente = utente.id_utente AND (citta = ? OR citta = ?) GROUP BY citta", //Restituisce punti drivepass per la sfida "PuntiDrivePass" tra le due citta coinvolte
     getRisultatoSfidaBonus : "SELECT citta, SUM(bonus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) AND sessione.data >= ? AND sessione.data <= ? GROUP BY citta", //Risultato sfida BONUS
     getRisultatoSfidaMalus : "SELECT citta, SUM(malus) as punti FROM sessione JOIN utente WHERE sessione.id_utente = utente.id_utente AND (citta = ? OR citta = ?) AND sessione.data >= ? AND sessione.data <= ? GROUP BY citta", //Risultato sfida MALUS

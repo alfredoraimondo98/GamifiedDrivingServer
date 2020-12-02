@@ -324,8 +324,24 @@ exports.riscattoSfida = async (req,res,next) => {
     let sessioni;
     let flagPartecipato = false;
     let punti_utente = 0;
+    let sfideDaRiscattare = [];
 
+    //Verifica che ci siano sfide da riscattare
+    try{
+        const [rows, field] = await db.execute(queries.getPartecipaDaRiscattare, [idUtente]);
+        for(let r of rows){
+            sfideDaRiscattare.push(r.id_sfida);
+        }
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile verificare se ci sono sfide da riscattare',
+            err : err
+        })
+    }
 
+    console.log(" Sfide da riscattare*** ", sfideDaRiscattare)
+    idSfida = sfideDaRiscattare[0]; //Riscatta l'ultima sfida 
     try{ //recupera sfida da riscattare
         const [row, field] = await db.execute(queries.getSfidaById, [idSfida]);
         sfida = row[0];
