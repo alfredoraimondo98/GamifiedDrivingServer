@@ -208,7 +208,16 @@ exports.getSfida = async (req,res,next) => {
         }
     }
 
-
+    //Se la città dell'utente è team2 scambia i valori tra team1 e team2 per rendere team1 quello dell'utente
+    if(cittaUtente == sfida.team2){
+        //Scambia nomi team
+        sfida.team2 = sfida.team1;
+        sfida.team1 = cittaUtente;
+         //Scambia punti team
+        let punti_t1 = sfida.punti_team1;
+        sfida.punt_team1 = sfida.punti_team2;
+        sfida.punti_team2 = punti_t1;
+    }
 
     res.status(201).json({
         sfida : sfida,
