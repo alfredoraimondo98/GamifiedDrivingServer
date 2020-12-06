@@ -522,6 +522,7 @@ exports.getAllSfide = async (req,res,next) => {
     let sfideUtente;
     try{
         const [rows, field] = await db.execute(queries.getSfideByUtente, [idUtente]);
+        console.log("***ROWS ", rows);
         if(rows != undefined || rows != null){
             sfideUtente = rows;
         }
@@ -537,10 +538,20 @@ exports.getAllSfide = async (req,res,next) => {
     for(let sfida of sfideUtente){
         if(sfida.stato == 'terminato'){
             if(sfida.punti_team1 > sfida.punti_team2 ){
-                vittoria = sfida.team1;
+                if(sfida.tipo_sfida == 'Malus'){
+                    vittoria = sfida.team2;
+                }
+                else{
+                    vittoria = sfida.team1;
+                }
             }
             else if(sfida.punti_team1 < sfida.punti_team2 ){
-                vittoria = sfida.team2;
+                if(sfida.tipo_sfida == 'Malus'){
+                    vittoria = sfida.team1;
+                }
+                else{
+                    vittoria = sfida.team2;
+                }
             }
             else if(sfida.punti_team1 == sfida.punti_team2){
                 vittoria = 'pareggio'
@@ -549,6 +560,7 @@ exports.getAllSfide = async (req,res,next) => {
         sfida.vittoria = vittoria;
     }
 
+    console.log("*** ", sfideUtente);
     res.status(201).json({
         sfide : sfideUtente
     })
