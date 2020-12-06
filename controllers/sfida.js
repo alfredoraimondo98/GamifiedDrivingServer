@@ -220,8 +220,12 @@ exports.getSfida = async (req,res,next) => {
         sfida.punti_team2 = punti_t1;
     }
 
+    let sfidaArray = [];
+    sfidaArray.push(sfida);
+
+
     res.status(201).json({
-        sfida : sfida,
+        sfida : sfidaArray,
         challenger : {
             partecipa : partecipa,
             punti_utente : punti_utente,
