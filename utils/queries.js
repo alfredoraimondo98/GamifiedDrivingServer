@@ -2,7 +2,8 @@ module.exports = {
     getUtenteByEmail: "SELECT * FROM utente WHERE email = ?",
     getUtenteByIdFacebook: "SELECT * FROM utente WHERE id_facebook = ?",
     getUtenteById: "SELECT * FROM utente WHERE id_utente = ?",
-    
+    getAllUtenti : "SELECT * FROM utente",
+
     getPortafoglioByIdUtente: "SELECT * FROM portafoglio WHERE id_utente = ?",
 
     getGarageByIdUtente: "SELECT * FROM garage WHERE id_utente = ?",
@@ -80,7 +81,8 @@ module.exports = {
 
     updateLivelloRiscattatoPortafoglioByIdUtente: "UPDATE portafoglio SET livello_riscattato = ? WHERE id_utente = ?",
 
-
+    updateStileDiGuida : "UPDATE stilediguida SET tipo = ?, media_settimanale = ?, costante_crescita = ?, tolleranza_min = ?, tolleranza_max = ? WHERE id_utente = ?",
+    
     updateSession: "UPDATE sessione SET durata = ?, km_percorsi = ?, bonus = bonus + ?,  malus = ? WHERE id_sessione = ? AND id_utente = ?",
 
     updatePartecipa: "UPDATE partecipa SET punti_utente = ?, riscatto_premio = ? WHERE id_utente = ? AND id_sfida = ?",
