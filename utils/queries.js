@@ -4,6 +4,7 @@ module.exports = {
     getUtenteById: "SELECT * FROM utente WHERE id_utente = ?",
     getAllUtenti : "SELECT * FROM utente",
 
+    getAllPortafoglio : "SELECT * FROM portafoglio",
     getPortafoglioByIdUtente: "SELECT * FROM portafoglio WHERE id_utente = ?",
 
     getGarageByIdUtente: "SELECT * FROM garage WHERE id_utente = ?",
@@ -93,7 +94,11 @@ module.exports = {
 
     updateLivelloStatisticheGamification: "UPDATE statistichegamification SET livello = ? WHERE id_utente = ? AND id_app = 1", //id_app = 1 GamifiedDriving
 
+    updateStoricoDrivepass : "UPDATE storicodrivepass SET livello_finale = ? , punti_guadagnati = ? WHERE id_utente = ? AND stagione = ?",
+
     updatePunteggioSfida : "UPDATE sfida SET punti_team1 = ?, punti_team2 = ? WHERE id_sfida = ? ", //update punteggio Sfida
+
+    updateLivelloPortafoglio : "UPDATE portafoglio SET livello = ? WHERE id_utente = ?",
 
     getUltimoAccesso : "SELECT ultimo_accesso FROM utente WHERE id_utente = ?",
     setUltimoAccesso : "UPDATE utente SET ultimo_accesso = ? WHERE id_utente = ?"

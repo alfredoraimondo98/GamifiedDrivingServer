@@ -34,6 +34,7 @@ const shopRoutes = require('./routes/shop');
 const drivepassRoutes = require('./routes/drivepass');
 const sessioneRoutes = require('./routes/sessione');
 const sfidaRoutes = require('./routes/sfida');
+const adminRoutes = require('./routes/admin');
 
 app.use('/auth', authRoutes);
 app.use('/data', dataRoutes);
@@ -42,8 +43,9 @@ app.use('/shop', shopRoutes);
 app.use('/drivepass', drivepassRoutes);
 app.use('/sessione', sessioneRoutes);
 app.use('/sfida', sfidaRoutes); 
+app.use('/admin', adminRoutes); 
 
 
 //console.log(process.env.DATABASE_NAME);
 app.listen(process.env.PORT || 35540, () => console.log("server start on "+ process.env.PORT));
- //app.listen(3000, () => console.log("server start on "+ process.env.PORT));
+// app.listen(3000, () => console.log("server start on "+ process.env.PORT));

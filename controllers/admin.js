@@ -8,7 +8,11 @@ const queries = require('../utils/queries');
 const idAdmin = 0;
 const inizio_stagione_drivePass = '2020-12-01'
 const fine_stagione_drivePass = '2020-12-31'
+const stagione = 1;
 
+/**
+ * Aggiornamento costante crescita di tutti gli utenti
+ */
 exports.updateCostanteCrescita = async (req,res,next) => {
     let idUtente = req.body.id_utente;
 
@@ -128,7 +132,149 @@ exports.updateCostanteCrescita = async (req,res,next) => {
 
 }
 
+/**
+ * Aggiornamento livello di ogni utente nella tabella statistiche.
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.updateStatisticheGamification = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
 
+    if(idUtente != idAdmin){
+        return 0;
+    }
+
+    let portafoglio; //Recupera tutti gli utenti
+    try{
+        const [rows, field] = await db.execute(queries.getAllPortafoglio, []);
+        portafoglio = rows;
+    }
+    catch(err){
+        res.status(401).json({
+            text : ' impossibile recuperare gli utenti ',
+            err : err
+        })
+    }
+ 
+    for(let p of portafoglio){
+        try{
+            await db.execute(queries.updateLivelloStatisticheGamification, [p.livello, p.id_utente])
+        }
+        catch(err){
+            res.status(401).json({
+                text : "impossibile effettuare l'aggiornamento",
+                err : err
+            })
+        }
+    
+    }
+
+    res.status(201).json({
+        text : 'aggiornamento completato '
+    })
+
+}
+
+/**
+ * Aggiornamento storico drivepass degli utenti
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.updateStoricoDrivepass = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+
+    if(idUtente != idAdmin){
+        return 0;
+    }
+
+    let portafoglio; //Recupera tutti gli utenti
+    try{
+        const [rows, field] = await db.execute(queries.getAllPortafoglio, []);
+        portafoglio = rows;
+    }
+    catch(err){
+        res.status(401).json({
+            text : ' impossibile recuperare gli utenti ',
+            err : err
+        })
+    }
+ 
+    for(let p of portafoglio){
+        try{
+            await db.execute(queries.updateStoricoDrivepass, [p.livello, p.punti_drivepass, p.id_utente, stagione])
+        }
+        catch(err){
+            res.status(401).json({
+                text : "impossibile effettuare l'aggiornamento",
+                err : err
+            })
+        }
+    
+    }
+
+    res.status(201).json({
+        text : 'aggiornamento completato '
+    })
+
+}
+
+/**
+ * Aggiornamento portafoglio utente admin
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.updateMyPortafoglio = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+    let acpoints = req.body.acpoints;
+    let tickets = req.body.tickets;
+    let livello = req.body.livello;
+
+    if(idUtente != idAdmin){
+        return 0;
+    }
+
+    try{
+        console.log("acpoints ", acpoints)
+        if(acpoints != null || acpoints != undefined){
+             await db.execute(queries.updatePointPortafoglioByIdUtente, [acpoints, idUtente]);
+        }
+
+        if(tickets != null || tickets != undefined){
+            await db.execute(queries.updateTicketPortafoglioByIdUtente, [tickets, idUtente])
+        }
+
+        if(livello != null || livello != undefined){
+            await db.execute(queries.updateLivelloPortafoglio, [livello, idUtente])
+        }
+     
+    }
+    catch(err){
+        res.status(401).json({
+            text : " impossibile effettuare l'aggiornamento" ,
+            err : err
+        })
+    }
+
+    let portafoglio;
+    try{
+        const [row, field] = await db.execute(queries.getPortafoglioByIdUtente , [idUtente]);
+        portafoglio = row[0];
+    }
+    catch(err){
+        res.status(401).json({
+            text :  " impossibile effettuare l'aggiornamento" ,
+            err : err
+        })
+    }
+
+    res.status(201).json({
+        portafoglio : portafoglio
+    })
+
+}
 
 /**
  * Definizione dello stile di guida sulla base del tipo di utente (tutti i valori sono stati convertiti da settimanale in mensile)
