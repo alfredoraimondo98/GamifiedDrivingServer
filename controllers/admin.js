@@ -111,6 +111,7 @@ exports.generaSfide = async(req,res,next) => {
  * Aggiornamento costante crescita di tutti gli utenti
  */
 exports.updateCostanteCrescita = async (req,res,next) => {
+    let azione = "Aggiornamento costanti di crescita degli utenti";
     let idUtente = req.body.id_utente;
 
     if(idUtente != idAdmin){
@@ -221,7 +222,18 @@ exports.updateCostanteCrescita = async (req,res,next) => {
         }
     }
 
-    //console.log("*** ", utenti);
+
+    //Aggiornamento tabella log azioni admin
+    try{
+        await db.execute(queries.insertLog, [idUtente, azione, new Date() ])
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile aggiornare il log',
+            err : err
+        })
+    }
+   
 
     res.status(201).json({
         utenti : utenti,
@@ -236,6 +248,7 @@ exports.updateCostanteCrescita = async (req,res,next) => {
  * @param {*} next 
  */
 exports.updateStatisticheGamification = async (req,res,next) => {
+    let azione = "Aggiornamento statistiche degli utenti per GamifiedDriving";
     let idUtente = req.body.id_utente;
 
     if(idUtente != idAdmin){
@@ -267,6 +280,17 @@ exports.updateStatisticheGamification = async (req,res,next) => {
     
     }
 
+    //Aggiornamento tabella log azioni admin
+    try{
+        await db.execute(queries.insertLog, [idUtente, azione, new Date() ])
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile aggiornare il log',
+            err : err
+        })
+    }
+
     res.status(201).json({
         text : 'aggiornamento completato '
     })
@@ -280,6 +304,7 @@ exports.updateStatisticheGamification = async (req,res,next) => {
  * @param {*} next 
  */
 exports.updateStoricoDrivepass = async (req,res,next) => {
+    let azione = "Aggiornamento storico drivepass degli utenti";
     let idUtente = req.body.id_utente;
 
     if(idUtente != idAdmin){
@@ -311,6 +336,17 @@ exports.updateStoricoDrivepass = async (req,res,next) => {
     
     }
 
+    //Aggiornamento tabella log azioni admin
+    try{
+        await db.execute(queries.insertLog, [idUtente, azione, new Date() ])
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile aggiornare il log',
+            err : err
+        })
+    }
+
     res.status(201).json({
         text : 'aggiornamento completato '
     })
@@ -324,6 +360,7 @@ exports.updateStoricoDrivepass = async (req,res,next) => {
  * @param {*} next 
  */
 exports.updateMyPortafoglio = async (req,res,next) => {
+    let azione = "Aggionamento dati portafoglio utente di test ";
     let idUtente = req.body.id_utente;
     let acpoints = req.body.acpoints;
     let tickets = req.body.tickets;
@@ -363,6 +400,17 @@ exports.updateMyPortafoglio = async (req,res,next) => {
     catch(err){
         res.status(401).json({
             text :  " impossibile effettuare l'aggiornamento" ,
+            err : err
+        })
+    }
+
+    //Aggiornamento tabella log azioni admin
+    try{
+        await db.execute(queries.insertLog, [idUtente, azione, new Date() ])
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile aggiornare il log',
             err : err
         })
     }
