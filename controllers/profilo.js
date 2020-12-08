@@ -477,6 +477,7 @@ exports.setAvatarPredefinito = async (req,res,next) => {
 
 exports.getAvatar = async (req,res,next) => {
     let idUtente = req.body.id_utente;
+    console.log("***** ID UTENTE ", idUtente);
 
     const errors = validationResult(req);
 
