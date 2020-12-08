@@ -41,7 +41,7 @@ module.exports = {
     getAllCitta : "SELECT citta FROM utente GROUP BY citta",
 
     getSfidaByCitta : "SELECT * FROM sfida WHERE team1 = ? OR team2 = ?",
-    getSfidaAttivaByCitta : "SELECT * FROM sfida WHERE (team1 = ? OR team2 = ?) AND stato = 'in corso'",
+    getSfidaAttivaByCitta : "SELECT * FROM sfida WHERE (team1 = ? OR team2 = ?) AND stato = ?",
 
     getSfidaById : "SELECT * FROM sfida WHERE id_sfida = ?",
 
