@@ -13,7 +13,7 @@ router.get('/classifica/getClassificaGlobale', profiloController.getClassificaGl
 router.post('/classifica/getClassificaLocale', profiloController.getClassificaLocale);
 router.post('/classifica/getClassificaFacebook', profiloController.getClassificaFacebook);
 
-
+router.post('/avatar/getAvatar', profiloController.getAvatar);
 router.get('/avatar/getAllAvatar', profiloController.getAllAvatar);
 router.post('/avatar/setAvatarPredefinito', profiloController.setAvatarPredefinito);
 

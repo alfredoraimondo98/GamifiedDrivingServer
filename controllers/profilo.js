@@ -471,3 +471,97 @@ exports.setAvatarPredefinito = async (req,res,next) => {
     })
 
 }
+
+
+
+
+exports.getAvatar = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.json({
+            message: 'Errore input Parametri',
+            error: errors.array()
+        });
+    }
+
+   
+    let profiloAvatar = [];
+    let allAvatar = [];
+
+    profiloAvatar = await getProfiloAvatarByIdUtente(idUtente); //Recupera tutti gli avatar disponibili
+     
+    try{
+        const [rows, field] = await db.execute(queries.getAllAvatar); //Recupera tutti gli avatar
+        allAvatar = rows;
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile recuperare auto',
+            err : err
+        })
+    }
+
+  
+
+    //Recupera gli avatar locked per l'utente
+    let avatarLocked = allAvatar.filter( (item) => {
+        let bool = false;
+        profiloAvatar.forEach( (a) => {
+            if(a.id_avatar === item.id_avatar){
+                bool = true;
+            }
+        })
+        if(!bool){
+            return item;
+        }
+    })
+
+    //Formatta le avatar locked per la risposta
+    let avatarLockedFormatted = [];
+    avatarLocked.forEach( (item) => {
+        avatar = {
+            id_avatar : item.id_avatar,
+            nome : item.nome,
+            img : item.img,
+            costo : item.costo,
+            predefinito : 0,
+            disponibilita : 0
+        };
+         
+        avatarLockedFormatted.push(avatar);
+    })
+
+    
+    avatar = profiloAvatar.concat(avatarLockedFormatted); //Concatena avatar locked e unlocked
+
+    //Inserisce in posizione 0 dell'array l'avatar predefinito
+    let el;
+    avatar.forEach( (item) => {
+        if( item.predefinito === 1 ){
+            el = avatar.splice(avatar.indexOf(item),1);
+         }
+     })
+ 
+    avatar.splice(0, 0, el[0]);
+    
+    
+    res.status(201).json({
+        avatar : avatar
+    })
+}
+
+
+async function getProfiloAvatarByIdUtente(idUtente){
+    try{
+        const [rows, field] = await db.execute(queries.getAvatarByProfiloAvatar, [idUtente]);
+        profiloAvatar = rows;
+        //console.log(parcheggio);
+    }
+    catch(err){
+       return err;
+    }
+    return profiloAvatar;
+}
