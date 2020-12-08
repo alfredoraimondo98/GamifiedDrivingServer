@@ -665,7 +665,6 @@ exports.getShopAvatar = async (req,res,next) =>{
 exports.buyAvatar = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let idAvatar = req.body.id_avatar;
-    let idGarage = req.body.id_garage;
     let updatePoint;
     let avatar;
     try{ //recupera dati avatar da acquistare
@@ -719,7 +718,6 @@ exports.buyAvatar = async (req,res,next) => {
                 });
             }
 
-        
 
             conn.query(queries.insertIntoProfiloAvatar, [idUtente, avatar.id_avatar, 1, 0], (err, result) => {
                 if (err) { console.log(err);
