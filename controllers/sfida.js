@@ -18,9 +18,9 @@ exports.getSfida = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let cittaUtente = req.body.citta;
     let sfida;    
-
+    let stato = "in corso";
     try{
-        const [row, field] = await db.execute(queries.getSfidaAttivaByCitta, [cittaUtente, cittaUtente]);
+        const [row, field] = await db.execute(queries.getSfidaAttivaByCitta, [cittaUtente, cittaUtente, stato]);
         sfida = row[0];
         console.log(sfida);
         if(sfida == undefined || sfida == null){
@@ -51,7 +51,7 @@ exports.getSfida = async (req,res,next) => {
     
 
     try{
-        const [row, field] = await db.execute(queries.getSfidaByCitta, [cittaUtente, cittaUtente]); //recupera la sfida aggiornata
+        const [row, field] = await db.execute(queries.getSfidaAttivaByCitta, [cittaUtente, cittaUtente, stato]); //recupera la sfida aggiornata
         sfida = row[0];
         if(sfida == undefined || sfida == null){
             res.status(201).json({
