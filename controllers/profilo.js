@@ -499,7 +499,7 @@ exports.getAvatar = async (req,res,next) => {
     }
     catch(err){
         res.status(401).json({
-            text : 'impossibile recuperare auto',
+            text : 'impossibile recuperare avatar',
             err : err
         })
     }
