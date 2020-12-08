@@ -406,3 +406,68 @@ exports.getClassificaFacebook = async (req,res,next) => {
         classifica : amici
     })
 }
+
+
+
+
+
+
+//AVATAR
+
+/**
+ * Recupera tutti gli avatar nel db
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+exports.getAllAvatar = async (req,res,next) => {
+    const errors = validationResult(req);
+    let allAvatar;
+    if (!errors.isEmpty()) {
+        return res.json({
+            message: 'Errore input Parametri',
+            error: errors.array()
+        });
+    }
+     
+    try{
+        const [rows, field] = await db.execute(queries.getAllAvatar); //Recupera tutti gli avatar
+         allAvatar = rows;
+ 
+       
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile recuperare gli avatar',
+            err : err
+        })
+    }
+
+    res.status(201).json({
+        avatar : allAvatar
+    })
+   
+}
+
+
+exports.setAvatarPredefinito = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+    let oldAvatar = req.body.old_avatar;
+    let newAvatar = req.body.new_avatar;
+
+    try{
+        result = await db.execute(queries.deleteAvatarPredefinito, [idUtente, oldAvatar]);
+        resultUpdate = await db.execute(queries.setNewAvatarPredefinito, [idUtente, newAvatar]);
+    }
+    catch(err){
+        res.status(401).json({
+            text : "impossibile settare l'auto predefinita",
+            err : err
+        })
+    }
+
+    res.status(201).json({
+        message : 'update auto predefinita ok'
+    })
+
+}

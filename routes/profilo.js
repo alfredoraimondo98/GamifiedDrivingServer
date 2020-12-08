@@ -14,6 +14,8 @@ router.post('/classifica/getClassificaLocale', profiloController.getClassificaLo
 router.post('/classifica/getClassificaFacebook', profiloController.getClassificaFacebook);
 
 
+router.get('/avatar/getAllAvatar', profiloController.getAllAvatar);
+router.post('/avatar/setAvatarPredefinito', profiloController.setAvatarPredefinito);
 
 
 

@@ -6,7 +6,7 @@ const router = express.Router();
 const queries = require('../utils/queries');
 var format = require('date-format');
 
-const idAdmin = 90;
+const idAdmin = 0;
 const inizio_stagione_drivePass = '2020-12-01'
 const fine_stagione_drivePass = '2020-12-31'
 const stagione = 1;
@@ -18,7 +18,7 @@ const stagione = 1;
  * @param {*} res 
  * @param {*} next 
  */
-exports.generaSfide = async(req,res,next) => {
+exports.generaSfide = async(req,res,next) => { console.log("IIIIIII");
     let tipoSfida = ['PuntiDrivepass', 'Bonus', 'Malus'];
     let tipoPremio = ['acpoints', 'tickets'];
     let acpointsPremi = [100, 150, 200, 250, 500];

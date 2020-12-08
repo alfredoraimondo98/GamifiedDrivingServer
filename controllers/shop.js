@@ -427,7 +427,12 @@ exports.getShopAuto = async (req,res,next) =>{
      
 }
 
-
+/**
+ * Acquisto auto
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 exports.buyAuto = async (req,res,next) => {
     let idUtente = req.body.id_utente;
     let idAuto = req.body.id_auto;
@@ -600,4 +605,175 @@ async function verificaTickets(idUtente, costo){
         console.log(err);
         return err;
     }
+}
+
+
+
+/**
+ * Restituisce tutti gli avatar disponibili nello shop
+ */
+exports.getShopAvatar = async (req,res,next) =>{
+    let idUtente = req.body.id_utente;
+
+    let avatar = []; //Tutte gli avatar disponibili
+     let avatarDisponibili = []; //Avatar disponibili per l'utente
+    
+    try{
+        const [rows, field] = await db.execute(queries.getAllAvatar); //Recupera tutti gli avatar
+        avatar = rows;
+    }
+    catch(err){
+        res.status(201).json({
+            text : "impossibile recuperare avatar",
+            err : err
+        })
+    }
+
+   
+    try{
+        const [rows, field] = await db.execute(queries.getAvatarByProfiloAvatar, [idUtente]) //recupera avatar disponibili all'utente
+        avatarDisponibili = rows;
+    }
+    catch(err){
+        res.status(201).json({
+            text : 'impossibile recuperare gli avatar disponibili per questo utente',
+            err : err
+        })
+    }
+ 
+    let avatarIntoShop = avatar.filter( (item) => {
+        let bool = false;
+        avatarDisponibili.forEach( (a) => {
+            if(a.id_avatar === item.id_avatar){
+                bool = true;
+            }
+        })
+        if(!bool){
+            return item;
+        }
+    })
+
+    res.status(201).json({
+        shopAvatar : avatarIntoShop
+    })
+     
+}
+
+
+
+
+exports.buyAvatar = async (req,res,next) => {
+    let idUtente = req.body.id_utente;
+    let idAvatar = req.body.id_avatar;
+    let idGarage = req.body.id_garage;
+    let updatePoint;
+    let avatar;
+    try{ //recupera dati avatar da acquistare
+        const [row, field] = await db.execute(queries.getAvatarById, [idAvatar]);
+        avatar = row[0];
+    }
+    catch(err){
+        res.status(401).json({
+            message : 'impossibile trovare avatar'
+        })
+    } 
+
+    //Verifica che l'l'avatar non sia già disponibile per quell'utente
+    try{
+        const [row, field] = await db.execute(queries.getAvatarByIdAndByIdUtente, [idAvatar, idUtente]);
+        if(row[0]){
+            res.status(401).json({
+                text : 'avatar già presente nel tuo profilo.'
+            })
+        }
+    }  
+    catch(err){
+        res.status(401).json({
+            message : err
+        })
+    }
+
+    try{   //Verifica disponibilità point
+        updatePoint = await verificaPoints(idUtente, avatar.costo);
+        if(updatePoint === false){
+            return res.status(401).json({
+                text: 'AcPoint non sufficienti'
+            })
+        }
+    }
+    catch(err){
+        res.status(401).json({
+            text : 'impossibile verificare i coin disponibili',
+            err : err
+        })
+    }
+
+
+    try{
+        conn.beginTransaction(async err => {
+            if (err) {
+                console.log(err);
+                res.status(401).json({
+                    text: ' impossibile avviare la procedura di acquisto',
+                    err : err
+                });
+            }
+
+        
+
+            conn.query(queries.insertIntoProfiloAvatar, [idUtente, avatar.id_avatar, 1, 0], (err, result) => {
+                if (err) { console.log(err);
+                    conn.rollback((err) => {
+                        console.log("inserimento avatar : ", err);
+                    });
+                    res.status(401).json({
+                        text: 'Errore insert avatar in profilo',
+                        err : err
+                    });
+                }
+
+
+                conn.query(queries.updatePointPortafoglioByIdUtente, [updatePoint, idUtente], (err, result) => {
+                    if (err) {
+                        conn.rollback((err) => {
+                            console.log("Update portafoglio : ", err);
+                        });
+                        res.status(422).json({
+                            text: 'Errore update portafoglio',
+                            err : err
+                        });
+                    }
+
+
+                    
+                    conn.commit((err) => {
+                        if (err) {
+                            conn.rollback((err) => {
+                                res.status(401).json({
+                                    text: " impossibile completare l'acquisto: Acquisto fallito!",
+                                    err : err
+                                });
+                            });
+                        }
+                        else {
+                            console.log('Transaction Complete.');
+                            //console.log("chiudo connessione");
+                           // conn.end();
+                            res.status(201).json({
+                                message : 'Acquisto completato',
+                                updatePoint : updatePoint,
+                                avatar: avatar
+                            });
+                        }
+                    });
+                });
+            });
+        });
+    }
+    catch(err){
+        res.status(401).json({
+            message : err
+        })
+    }
+
 }

@@ -13,22 +13,29 @@ module.exports = {
     getCostanteCrescita: "SELECT costante_crescita FROM stilediguida WHERE id_utente = ?",
 
 
-    getParcheggioByIdGarage: `SELECT heroku_344b7c2e1e3b45f.auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
-                                FROM heroku_344b7c2e1e3b45f.parcheggia JOIN heroku_344b7c2e1e3b45f.auto 
-                                ON heroku_344b7c2e1e3b45f.parcheggia.id_auto  = heroku_344b7c2e1e3b45f.auto.id_auto  
-                                WHERE heroku_344b7c2e1e3b45f.parcheggia.id_garage = ?`,
+    getParcheggioByIdGarage: `SELECT auto.id_auto, nome, rarita, img, img_sessione, colore, costo, predefinito, disponibilita 
+                                FROM parcheggia JOIN auto 
+                                ON parcheggia.id_auto  = auto.id_auto  
+                                WHERE parcheggia.id_garage = ?`,
+
+
+                                
+    getAvatarByProfiloAvatar: `SELECT profiloavatar.id_utente, avatar.id_avatar, nome, img, costo, predefinito, disponibilita 
+                              FROM profiloavatar JOIN avatar 
+                              ON profiloavatar.id_avatar  = avatar.id_avatar 
+                              WHERE profiloavatar.id_utente= ?`,
 
     getItemParcheggia: 'SELECT * FROM parcheggia WHERE id_garage = ? AND id_auto = ?',
-    getItemProfiloavatar: 'SELECT * FROM profiloavatar WHERE id_garage = ? AND id_avatar = ?',
+    getItemProfiloavatar: 'SELECT * FROM profiloavatar WHERE id_utente = ? AND id_avatar = ?',
 
     getDrivePassByStagione: 'SELECT * FROM drivepass WHERE stagione = ?',
     getDrivePassByLivello: 'SELECT * FROM drivepass WHERE livello = ?',
 
-
-    getAllAuto: "SELECT * FROM auto",
+     getAllAuto: "SELECT * FROM auto",
     getAutoById: "SELECT * FROM auto WHERE id_auto = ? ",
     getAutoPredefinita : "SELECT id_auto FROM parcheggia WHERE id_garage = ? AND predefinito = 1",
     getAutoByIdAndByIdGarage: "SELECT * FROM parcheggia WHERE id_auto = ? AND id_garage = ?",
+    getAvatarByIdAndByIdUtente: "SELECT * FROM profiloavatar WHERE id_avatar = ? AND id_utente = ?",
 
     getSessioneById: "SELECT * FROM sessione WHERE id_sessione = ? AND id_utente = ?",
     getSessioniByRangeData: "SELECT * FROM sessione WHERE id_utente = ? AND data >= ? AND data <= ?",
@@ -72,7 +79,7 @@ module.exports = {
     createStoricoDrivePass : "INSERT INTO storicodrivepass (stagione, id_utente, livello_finale, punti_guadagnati, data_fine) VALUE (?,?,?,?,?)",
 
     insertIntoParcheggio: "INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
-    insertIntoProfiloAvatar: "INSERT INTO profiloavatar (id_garage, id_avatar, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
+    insertIntoProfiloAvatar: "INSERT INTO profiloavatar (id_utente, id_avatar, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
 
     updateTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ? WHERE id_utente = ?",
     incrementTicketPortafoglioByIdUtente: "UPDATE portafoglio SET ticket = ticket + ? WHERE id_utente = ?",
@@ -93,6 +100,9 @@ module.exports = {
     AutoPredefinita : "UPDATE parcheggia SET predefinito = 1 WHERE id_garage = ? AND id_auto = ?",
     setNewAutoPredefinita : "UPDATE parcheggia SET predefinito = 1 WHERE id_garage = ? AND id_auto = ?",
     deleteAutoPredefinita : "UPDATE parcheggia SET predefinito = 0 WHERE id_garage = ? AND id_auto = ?",
+
+    setNewAvatarPredefinito : "UPDATE profiloavatar SET predefinito = 1 WHERE id_utente = ? AND id_avatar = ?",
+    deleteAvatarPredefinito : "UPDATE profiloavatar SET predefinito = 0 WHERE id_utente = ? AND id_avatar = ?",
 
     updateLivelloStatisticheGamification: "UPDATE statistichegamification SET livello = ? WHERE id_utente = ? AND id_app = 1", //id_app = 1 GamifiedDriving
 

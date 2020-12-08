@@ -470,6 +470,19 @@ exports.createUtente = async (req, res, next) => {
                                     err : err
                                 });  
                             }
+
+
+                            //Inserisce auto di default nel parcheggio del garage
+                            conn.query('INSERT INTO profiloavatar (id_utente, id_avatar, disponibilita, predefinito) values (?,?,?,?)', [idInsertUtente, 1, 1, 1], (err, resul)=>{
+                            if (err) {
+                                conn.rollback((err) => {
+                                    console.log("Insert auto predefinita error", err);
+                                });
+                                return res.status(401).json({
+                                    text: 'impossibile settare auto predefinita',
+                                    err : err
+                                });  
+                            }
                            
                    
                     
@@ -557,6 +570,7 @@ exports.createUtente = async (req, res, next) => {
                                     }); 
                                 });
                                 }); 
+                            });
                             });
                         });
                     });

@@ -342,17 +342,17 @@ exports.riscattaLivello = async (req,res,next) => {
         }
 
         if(item.tipo_premio == 'avatar'){
-            /* const [row, field] = await db.execute(queries.getItemProfiloAvatar, [idGarage, +item.premio]);
+            const [row, field] = await db.execute(queries.getItemProfiloAvatar, [idUtente, +item.premio]);
             console.log("AUTO ", row[0]);
             if(!row[0]){ //Se l'auto non è già disponibile viene aggiunta all'utente
-                try{await db.execute(queries.insertIntoProfiloavatar, [idGarage, +item.premio, 1, 0])}
+                try{await db.execute(queries.insertIntoProfiloAvatar, [idUtente, +item.premio, 1, 0])}
                 catch(err){ 
                     res.status(401).json({
                         text : "impossibile procedere al riscatto",
                         err : err
                     })
                 }
-            } */
+            }
         }
 
         riscatto = item.livello; //salva l'ultimo livello riscattato
