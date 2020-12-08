@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const queries = require('../utils/queries');
  
-const idAdmin = 0;
+const idAdmin = 90;
 const inizio_stagione_drivePass = '2020-12-01'
 const fine_stagione_drivePass = '2020-12-31'
 const stagione = 1;
