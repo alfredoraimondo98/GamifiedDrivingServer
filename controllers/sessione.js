@@ -530,6 +530,7 @@ exports.setInfrazione = async (req,res,next) => {
     let timer = req.body.timer;
     let tipo = req.body.tipo;
     let roadName = req.body.road_name;
+    let maxspeed = req.body.maxspeed;
     let descrizione = "";
 
     //console.log("****SET INFRAZIONE ", idSessione, idUtente, timer, tipo)
@@ -546,7 +547,7 @@ exports.setInfrazione = async (req,res,next) => {
  
 
     try{
-        await db.execute(queries.createInfrazione, [idSessione, idUtente, timer, tipo, descrizione, roadName])
+        await db.execute(queries.createInfrazione, [idSessione, idUtente, timer, tipo, descrizione, roadName, maxspeed])
     }
     catch(err){
         res.status(401).json({
