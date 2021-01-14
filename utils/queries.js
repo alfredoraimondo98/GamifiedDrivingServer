@@ -75,7 +75,7 @@ module.exports = {
     createStatisticheGamification: "INSERT INTO statistichegamification (id_utente, id_app, livello) values (?,?,?)",
     createSession: "INSERT INTO sessione (durata, km_percorsi, bonus, malus, id_utente, data) VALUES (?,?,?,?,?, ?)",
 
-    createInfrazione: "INSERT INTO infrazione (id_sessione, id_utente, timer, tipo, descrizione) VALUES (?,?,?,?,?)",
+    createInfrazione: "INSERT INTO infrazione (id_sessione, id_utente, timer, tipo, descrizione, road_name) VALUES (?,?,?,?,?, ?)",
     createStoricoDrivePass : "INSERT INTO storicodrivepass (stagione, id_utente, livello_finale, punti_guadagnati, data_fine) VALUE (?,?,?,?,?)",
 
     insertIntoParcheggio: "INSERT INTO parcheggia (id_garage, id_auto, disponibilita, predefinito) VALUES (?, ?, ?, ?)",
