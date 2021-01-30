@@ -68,7 +68,7 @@ module.exports = {
 
     getSfideByUtente : "SELECT sfida.id_sfida, sfida.team1, sfida.team2, sfida.tipo_sfida, sfida.descrizione, sfida.data_inizio_sfida, sfida.data_fine_sfida, sfida.stato, sfida.premio, sfida.tipo_premio, sfida.punti_team1, sfida.punti_team2 FROM partecipa JOIN sfida WHERE partecipa.id_sfida = sfida.id_sfida AND partecipa.id_utente = ?",
 
-    createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook) values (?,?,?,?,?,?,?)",
+    createUtente: "INSERT INTO utente (nome, cognome, email, password, citta, tipo_accesso, id_facebook, ultimo_accesso) values (?,?,?,?,?,?,?, 0000-00-00)",
     createPortafoglio: "INSERT INTO portafoglio (acpoint, ticket, livello, punti_drivepass, id_utente) values (0, 0, 1, 0, ?)",
     createGarage: "INSERT INTO garage (id_utente) values (?)",
     createStileDiGuida: "INSERT INTO stilediguida (id_utente, tipo, media_settimanale, costante_crescita, tolleranza_min, tolleranza_max) values (?,?,?,?,?,?)",

@@ -621,23 +621,23 @@ exports.checkEmail = async (req, res, next) => {
  */
  function defineStileGuida(tipo){
     if(tipo==='Viaggiatore'){
-        media = 880;
+        media = 250;
         costanteCrescita = 0.5;
-        tolleranzaMin = 720;
-        tolleranzaMax = 1200;
+        tolleranzaMin = 180;
+        tolleranzaMax = 400;
         
     }
     else if(tipo==='Standard'){
-        media = 600;
+        media = 150;
         costanteCrescita = 1;
-        tolleranzaMin = 480;
-        tolleranzaMax = 720;
+        tolleranzaMin = 120;
+        tolleranzaMax = 180;
     }
     else if(tipo==='Salutista'){
-        media = 400;
+        media = 100;
         costanteCrescita = 2;
         tolleranzaMin = 0;
-        tolleranzaMax = 480;    
+        tolleranzaMax = 120;    
     }
  }
 
